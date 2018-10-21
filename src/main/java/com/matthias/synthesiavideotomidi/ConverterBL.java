@@ -154,7 +154,7 @@ public class ConverterBL {
                 }
 
                 JFileChooser chooser = new JFileChooser();
-                chooser.setCurrentDirectory(file);
+                chooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\Documents\\Klavier\\MidiResults"));
                 int result = chooser.showSaveDialog(null);
 
                 if (result == JFileChooser.APPROVE_OPTION) {
