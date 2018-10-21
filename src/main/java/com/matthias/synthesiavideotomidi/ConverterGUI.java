@@ -48,7 +48,7 @@ public class ConverterGUI extends javax.swing.JFrame {
             }
             g2.drawImage(bufferedImage, 0, 0, (int) (bufferedImage.getWidth() * scale), (int) (bufferedImage.getHeight() * scale), this);
 
-            if (!bl.isRunning()) {
+            if (bl.getState() != ConverterBL.RUNNING) {
                 for (NoteListener nl : bl.getNoteListeners()) {
                     g2.setColor(Color.orange);
                     g2.fillRect((int) (nl.getPosX() * scale - 2), (int) (nl.getPosY() * scale - 2), 4, 4);
@@ -356,26 +356,29 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btSetC2ActionPerformed
 
     private void btStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartActionPerformed
-        if (!bl.isRunning()) {
+        if (bl.getState() == ConverterBL.WAITING_TO_START) {
             bl.reset();
             try {
-                bl.convert((int) spBPM.getValue(), (int) spPPQ.getValue(), cbSingleVoice.isSelected());
-                btStart.setText("stop and write");
+                bl.convert(cbSingleVoice.isSelected());
+                btStart.setText("Stop");
                 Thread t = new Thread(() -> {
-                    while (bl.isRunning()) {
+                    while (bl.getState() == ConverterBL.RUNNING) {
                         repaint();
                         try {
                             Thread.sleep(1000/fps);
                         } catch (InterruptedException ex) {}
                     }
+                    btStart.setText("save");
                 });
                 t.start();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Converting has failed");
             }
-        } else {
-            bl.setRunning(false);
-            btStart.setText("start");
+        } else if (bl.getState() == ConverterBL.RUNNING) {
+            bl.setState(ConverterBL.WAITING_FOR_SETTINGS);
+            btStart.setText("Save");
+        } else if (bl.getState() == ConverterBL.WAITING_FOR_SETTINGS) {
+            bl.setBpmPpq((int) spBPM.getValue(), (int) spPPQ.getValue());
         }
 
     }//GEN-LAST:event_btStartActionPerformed

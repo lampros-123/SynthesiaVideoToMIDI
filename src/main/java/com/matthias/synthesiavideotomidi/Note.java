@@ -76,4 +76,14 @@ public class Note {
     public double getDurationFrames() {
         return durationFrames;
     }
+
+    public static void setFps(double fps) {
+        Note.fps = fps;
+    }
+
+    public static void setBpm(double bpm) {
+        Note.bpm = bpm;
+    }
+    
+    
 }

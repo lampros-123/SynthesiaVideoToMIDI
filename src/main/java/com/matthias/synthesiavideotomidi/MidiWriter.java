@@ -17,7 +17,7 @@ public class MidiWriter {
 
     private static int VELOCITY = 120;
 
-    public static void write(Voice leftHand, Voice rightHand, String path, int bpm, int ppq) throws Exception{
+    public static void write(Voice leftHand, Voice rightHand, String path, int ppq) throws Exception{
         Sequence s = new Sequence(Sequence.PPQ, ppq);
         
 

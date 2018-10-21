@@ -12,6 +12,10 @@ import javax.swing.JOptionPane;
  * @author Matthias
  */
 public class ConverterBL {
+    public static int WAITING_TO_START      = 0;
+    public static int RUNNING               = 1;
+    public static int WAITING_FOR_SETTINGS  = 2;
+    public static int DONE                  = 3;
 
     public boolean paused;
 
@@ -20,8 +24,10 @@ public class ConverterBL {
     private BufferedImage currentFrame;
     private int currentFrameNumber;
     private File file;
-    private boolean running = false;
+    private int state = WAITING_TO_START;
     private int startFrame = 0;
+    
+    private int bpm, ppq = 0;
 
     private int c1x, c2x, c1Idx, c2Idx, y;
 
@@ -38,7 +44,7 @@ public class ConverterBL {
 
     public void reset() {
         NoteListener.resetNotes();
-        running = false;
+        state = WAITING_TO_START;
         currentFrame = null;
         currentFrameNumber = 0;
     }
@@ -94,7 +100,7 @@ public class ConverterBL {
      * @param bpm how fast the video is
      * @throws Exception if the file is null or there aren't any noteListeners
      */
-    public void convert(int bpm, int ppq, boolean maxOneParallelVoice) throws Exception {
+    public void convert(boolean maxOneParallelVoice) throws Exception {
         if (file == null || noteListeners.size() < 1) {
             throw new Exception("Not Initialised");
         }
@@ -102,13 +108,13 @@ public class ConverterBL {
         FramePlayer player = new FramePlayer(file);
         player.setStartFrame(startFrame);
 
-        Note.setFpsBpm(player.getFps(), bpm);
-        running = true;
+        Note.setFps(player.getFps());
+        state = RUNNING;
         Thread t = new Thread(() -> {
             // go through all frames and save what notes are played
             try {
                 currentFrameNumber = 0;
-                while (player.hasNext() && running) {
+                while (player.hasNext() && state == RUNNING) {
 //                    if(paused) continue;
                     currentFrame = player.next();
                     for (NoteListener noteListener : noteListeners) {
@@ -135,32 +141,53 @@ public class ConverterBL {
                     lh.merge(voice);
                 }
             }
+            
+            while(state == WAITING_FOR_SETTINGS) {
+                waitForSettings();
+                if(state != WAITING_FOR_SETTINGS)
+                    break;
+                Note.setBpm(bpm);
 
-            if (maxOneParallelVoice) {
-                lh = limitToOneVoice(lh);
-                rh = limitToOneVoice(rh);
-            }
+                if (maxOneParallelVoice) {
+                    lh = limitToOneVoice(lh);
+                    rh = limitToOneVoice(rh);
+                }
 
-            JFileChooser chooser = new JFileChooser();
-            chooser.setCurrentDirectory(file);
-            int result = chooser.showSaveDialog(null);
+                JFileChooser chooser = new JFileChooser();
+                chooser.setCurrentDirectory(file);
+                int result = chooser.showSaveDialog(null);
 
-            if (result == JFileChooser.APPROVE_OPTION) {
-                try {
-                    String destination = chooser.getSelectedFile().toString();
-                    if (!destination.endsWith(".midi")) {
-                        destination += ".midi";
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    try {
+                        String destination = chooser.getSelectedFile().toString();
+                        if (!destination.endsWith(".midi")) {
+                            destination += ".midi";
+                        }
+                        MidiWriter.write(lh, rh, destination, ppq);
+                        JOptionPane.showMessageDialog(null, "saving done");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        JOptionPane.showMessageDialog(null, "saving failed");
                     }
-                    MidiWriter.write(lh, rh, destination, bpm, ppq);
-                    JOptionPane.showMessageDialog(null, "saving done");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    JOptionPane.showMessageDialog(null, "saving failed");
                 }
             }
-
         });
         t.start();
+    }
+    
+    public void setBpmPpq(int bpm, int ppq) {
+        this.bpm = bpm;
+        this.ppq = ppq;
+    }
+    
+    private void waitForSettings() {
+        bpm = 0;
+        ppq = 0;
+        while(bpm == 0 || ppq == 0) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ex) {}
+        }
     }
 
     /**
@@ -237,12 +264,12 @@ public class ConverterBL {
         }
     }
 
-    public boolean isRunning() {
-        return running;
+    public int getState() {
+        return state;
     }
 
-    public void setRunning(boolean running) {
-        this.running = running;
+    public void setState(int state) {
+        this.state = state;
     }
 
     public BufferedImage getCurrentFrame() {
