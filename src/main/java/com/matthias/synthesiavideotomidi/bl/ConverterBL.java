@@ -67,7 +67,6 @@ public class ConverterBL {
         }
 
         FramePlayer player = new FramePlayer(file);
-        System.out.println(player.getFps());
         try {
             player.setStartFrame(startFrame);
         } catch (Exception e) {
@@ -81,12 +80,16 @@ public class ConverterBL {
         }
 
         double dist = (c2x - c1x) / (c2Idx - c1Idx) / 7.0;
-
+        if(dist <= 0) {
+            return;
+        }
+        
         double x = c1x - offsetNotesLeft * dist;
         int[] offsetDictionary = {0, 1, 3, 5, 7, 8, 10, 12};
         int noteNumber = c1Idx * 12 - offsetDictionary[offsetNotesLeft];
 
         noteListeners = new ArrayList<>();
+        
         while (x <= c2x + offsetNotesRight * dist) {
             // add white key
             NoteListener nl = new NoteListener(noteNumber);
@@ -199,7 +202,7 @@ public class ConverterBL {
         this.ppq = ppq;
         getDefault().setBpm(bpm);
         getDefault().setPpq(ppq);
-        return false;
+        return true;
     }
 
     private void waitForSettings() {
@@ -314,7 +317,12 @@ public class ConverterBL {
             calculateNoteListeners(offLeft, offRight);
         }
         
-        getDefault().setC1(idx);
+        DefaultData d = getDefault();
+        d.setC1x(c1x);
+        d.setC12y(y);
+        d.setC1Idx(idx);
+        d.setOffLeft(offLeft);
+        d.setOffRight(offRight);
     }
 
     public void setC2(double x, double y, int idx, int offLeft, int offRight) {
@@ -326,7 +334,12 @@ public class ConverterBL {
             calculateNoteListeners(offLeft, offRight);
         }
         
-        getDefault().setC2(idx);
+        DefaultData d = getDefault();
+        d.setC2x(c2x);
+        d.setC12y(y);
+        d.setC2Idx(idx);
+        d.setOffLeft(offLeft);
+        d.setOffRight(offRight);
     }
 
     public int getState() {

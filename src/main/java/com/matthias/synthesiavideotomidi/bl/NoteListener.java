@@ -2,13 +2,14 @@ package com.matthias.synthesiavideotomidi.bl;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  *
  * @author Matthias
  */
-public class NoteListener {
+public class NoteListener implements Serializable{
     private static ArrayList<Voice> voices = new ArrayList<>();
 
 
@@ -24,6 +25,11 @@ public class NoteListener {
 
     public NoteListener(int idx) {
         this.idx = idx;
+    }
+    public NoteListener(int idx, int x, int y) {
+        this.idx = idx;
+        posX = x;
+        posY = y;
     }
 
     public void set(int x, int y, BufferedImage firstFrame) {
@@ -136,5 +142,9 @@ public class NoteListener {
 
     public static ArrayList<Voice> getVoices() {
         return voices;
+    }
+
+    public int getIdx() {
+        return idx;
     }
 }

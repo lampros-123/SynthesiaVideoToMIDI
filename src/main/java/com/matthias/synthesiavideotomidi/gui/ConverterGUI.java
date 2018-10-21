@@ -62,12 +62,19 @@ public class ConverterGUI extends javax.swing.JFrame {
         }
     }
 
-    private void setSpinnerTexts(DefaultData data) {
-        spC1.setValue(data.getC1());
-        spC2.setValue(data.getC2());
+    private void setupDefaults(DefaultData data) {
+        spC1.setValue(2);
+        spC2.setValue(8);
         spBPM.setValue(data.getBpm());
         spPPQ.setValue(data.getPpq());
         spStartFrame.setValue(data.getStartFrame());
+        
+        if(data.getC1Idx() >= 0 && data.getC2Idx() >= 0) {
+            bl.setC1(data.getC1x(), data.getC12y(), data.getC1Idx(), data.getOffLeft(), data.getOffRight());
+            bl.setC2(data.getC2x(), data.getC12y(), data.getC2Idx(), data.getOffLeft(), data.getOffRight());
+            spC1.setValue(data.getC1Idx());
+            spC2.setValue(data.getC2Idx());
+        }
     }
     
     /**
@@ -409,7 +416,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             bl.reset();
-            setSpinnerTexts(bl.setFile(file));
+            setupDefaults(bl.setFile(file));
             repaint();
         }
     }//GEN-LAST:event_btChooseFileActionPerformed
@@ -441,6 +448,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_sliderScaleStateChanged
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        bl.setBpmPpq((int) spBPM.getValue(), (int) spPPQ.getValue());
         bl.saveDefaults();
     }//GEN-LAST:event_formWindowClosing
 
