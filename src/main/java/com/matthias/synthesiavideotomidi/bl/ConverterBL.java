@@ -79,7 +79,7 @@ public class ConverterBL {
             return;
         }
 
-        double dist = (c2x - c1x) / (c2Idx - c1Idx) / 7.0;
+        double dist = (c2x - c1x) / (7.0 * (c2Idx - c1Idx));
         if(dist <= 0) {
             return;
         }
@@ -106,6 +106,9 @@ public class ConverterBL {
             } else {
                 x = nl.getPosX() + dist;
             }
+        }
+        for (NoteListener nl : noteListeners) {
+//            nl.center(currentFrame);
         }
     }
 
@@ -222,13 +225,13 @@ public class ConverterBL {
      * @param x desired x coordinate
      * @param y the y coordinate
      */
-    public void fix(int x, int y) {
-        int closest = Integer.MAX_VALUE;
+    public void fix(double x, double y) {
+        double closest = Integer.MAX_VALUE;
         NoteListener closestNl = null;
 
         for (NoteListener nl : noteListeners) {
-            int dx = Math.abs(x - nl.getPosX());
-            int dy = Math.abs(y - nl.getPosY());
+            double dx = Math.abs(x - nl.getPosX());
+            double dy = Math.abs(y - nl.getPosY());
             if (dx + dy < closest) {
                 closest = dx + dy;
                 closestNl = nl;
@@ -236,7 +239,7 @@ public class ConverterBL {
         }
 
         if (closestNl != null) {
-            closestNl.setPosX(x, currentFrame);
+            closestNl.setPosX((int) x, currentFrame);
         }
     }
 

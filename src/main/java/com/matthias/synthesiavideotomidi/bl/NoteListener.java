@@ -12,7 +12,6 @@ import java.util.ArrayList;
 public class NoteListener implements Serializable{
     private static ArrayList<Voice> voices = new ArrayList<>();
 
-
     private int posX = -1;
     private int posY = -1;
     private int idx;
@@ -32,10 +31,10 @@ public class NoteListener implements Serializable{
         posY = y;
     }
 
-    public void set(int x, int y, BufferedImage firstFrame) {
+    public void set(int x, int y, BufferedImage img) {
         posX = x;
         posY = y;
-        center(firstFrame);
+        center(img);
     }
     
     public static void resetNotes(){

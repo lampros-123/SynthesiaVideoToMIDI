@@ -357,18 +357,20 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btSetC1ActionPerformed
 
     private void pnCanvasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnCanvasMouseClicked
+        double scaledX = evt.getX() / scale;
+        double scaledY = evt.getY() / scale;
         if (waiting.equals("c1")) {
-            bl.setC1(evt.getX() / scale, evt.getY() / scale, (int) spC1.getValue(),
+            bl.setC1(scaledX, scaledY, (int) spC1.getValue(),
                     (int) spOffC1.getValue(), (int) spOffC2.getValue());
             waiting = "c2";
             lbAction.setText("Action: set c" + (int) spC2.getValue());
         } else if (waiting.equals("c2")) {
-            bl.setC2(evt.getX() / scale, evt.getY() / scale, (int) spC2.getValue(),
+            bl.setC2(scaledX, scaledY, (int) spC2.getValue(),
                     (int) spOffC1.getValue(), (int) spOffC2.getValue());
             waiting = "fix";
             lbAction.setText("Action: fix");
         } else if (waiting.equals("fix")) {
-            bl.fix(evt.getX(), evt.getY());
+            bl.fix(scaledX, scaledY);
         }
         repaint();
     }//GEN-LAST:event_pnCanvasMouseClicked
