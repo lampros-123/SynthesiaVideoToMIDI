@@ -3,6 +3,7 @@ package com.matthias.synthesiavideotomidi.gui;
 import com.matthias.synthesiavideotomidi.bl.ConverterBL;
 import com.matthias.synthesiavideotomidi.bl.DefaultData;
 import com.matthias.synthesiavideotomidi.bl.NoteListener;
+import com.matthias.synthesiavideotomidi.bl.Voice;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -37,6 +38,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         lbAction.setText("Action: set c" + (int) spC1.getValue());
         scale = sliderScale.getValue() / 100.0;
         fps = sliderFPS.getValue();
+        Voice.setTolerance((int) sliderColorTolerance.getValue());
     }
 
     @Override
@@ -111,6 +113,8 @@ public class ConverterGUI extends javax.swing.JFrame {
         spPPQ = new javax.swing.JSpinner();
         jLabel6 = new javax.swing.JLabel();
         cbSingleVoice = new javax.swing.JCheckBox();
+        sliderColorTolerance = new javax.swing.JSlider();
+        jLabel7 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -258,7 +262,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         lbAction.setText("Action: nothing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel1.add(lbAction, gridBagConstraints);
@@ -307,12 +311,14 @@ public class ConverterGUI extends javax.swing.JFrame {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
         jPanel1.add(sliderScale, gridBagConstraints);
 
         jLabel4.setText("Scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridheight = 2;
         jPanel1.add(jLabel4, gridBagConstraints);
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
@@ -345,6 +351,28 @@ public class ConverterGUI extends javax.swing.JFrame {
         gridBagConstraints.gridy = 7;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(cbSingleVoice, gridBagConstraints);
+
+        sliderColorTolerance.setMaximum(120);
+        sliderColorTolerance.setMinimum(40);
+        sliderColorTolerance.setValue(80);
+        sliderColorTolerance.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                sliderColorToleranceStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
+        jPanel1.add(sliderColorTolerance, gridBagConstraints);
+
+        jLabel7.setText("Color Tolerance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridheight = 2;
+        jPanel1.add(jLabel7, gridBagConstraints);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
@@ -454,6 +482,10 @@ public class ConverterGUI extends javax.swing.JFrame {
         bl.saveDefaults();
     }//GEN-LAST:event_formWindowClosing
 
+    private void sliderColorToleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderColorToleranceStateChanged
+        Voice.setTolerance((int) sliderColorTolerance.getValue());
+    }//GEN-LAST:event_sliderColorToleranceStateChanged
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -497,9 +529,11 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbAction;
     private javax.swing.JPanel pnCanvas;
+    private javax.swing.JSlider sliderColorTolerance;
     private javax.swing.JSlider sliderFPS;
     private javax.swing.JSlider sliderScale;
     private javax.swing.JSpinner spBPM;

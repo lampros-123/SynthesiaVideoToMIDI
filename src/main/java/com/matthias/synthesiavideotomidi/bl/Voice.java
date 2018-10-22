@@ -9,6 +9,7 @@ import java.util.ArrayList;
  */
 public class Voice {
     
+    // higher = fewer colors, lower = more differntiation between colors
     private static int tolerance = 80;
     
     private ArrayList<Note> notes = new ArrayList<>();
@@ -78,4 +79,7 @@ public class Voice {
         lhRh = getAverageNote() < balance ? 0 : 1;
     }
 
+    public static void setTolerance(int tolerance) {
+        Voice.tolerance = tolerance;
+    }
 }
