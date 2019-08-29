@@ -152,4 +152,8 @@ public class NoteListener implements Serializable{
     public int getIdx() {
         return idx;
     }
+
+    public void setPosY(int posY) {
+        this.posY = posY;
+    }
 }

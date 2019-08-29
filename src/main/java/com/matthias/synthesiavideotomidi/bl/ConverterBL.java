@@ -113,6 +113,14 @@ public class ConverterBL {
 //            nl.center(currentFrame);
         }
     }
+    
+    public void NoteListenerYPositionUpdated() {
+        for (NoteListener noteListener : noteListeners) {
+            if(noteListener.getPosY() < (int) config.getC12y()) {
+                noteListener.setPosY((int) config.getC12y() - config.getBlackWhiteVerticalSpacing());
+            }
+        }
+    }
 
     /**
      * runs through the entire video and writes it to a midi file
