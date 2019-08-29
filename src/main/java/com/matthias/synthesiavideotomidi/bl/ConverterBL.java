@@ -22,38 +22,28 @@ public class ConverterBL {
     public static int WAITING_TO_START = 0;
     public static int RUNNING = 1;
     public static int WAITING_FOR_SETTINGS = 2;
-    public static int DONE = 3;
+    public static int SAVING = 3;
+    public static int DONE = 4;
+    public static final String defaultsFile = "defaults.ser";
 
     public boolean paused;
 
-    private static int LH_RH_BALANCE = 60;
     private ArrayList<NoteListener> noteListeners = new ArrayList<>();
     private BufferedImage currentFrame;
     private int currentFrameNumber;
-    private File file;
     private int state = WAITING_TO_START;
-    private int startFrame = 0;
-    private int blackWhiteVerticalSpacing = 40;
 
-    private int bpm, ppq = 0;
-
-    private int c1x, c2x, c1Idx, c2Idx, y;
-
-    private ArrayList<DefaultData> defaults = new ArrayList<>();
-    private String defaultsFile = "defaults.ser";
+    private ArrayList<Config> defaults = new ArrayList<>();
+    private Config config;
 
     public ConverterBL() {
-        c1Idx = 0;
-        c2Idx = 12;
-        y = c1x = c2x = -1;
-
         loadDefaults();
+        config = loadOrCreateConfig(null);
     }
 
-    public DefaultData setFile(File file) {
-        this.file = file;
+    public void setFile(File file) {
+        config = loadOrCreateConfig(file);
         updateCurrentFrame();
-        return getDefault();
     }
 
     public void reset() {
@@ -64,13 +54,13 @@ public class ConverterBL {
     }
 
     private void updateCurrentFrame() {
-        if (file == null) {
+        if (config.getVideo() == null) {
             return;
         }
 
-        FramePlayer player = new FramePlayer(file);
+        FramePlayer player = new FramePlayer(config.getVideo());
         try {
-            player.setStartFrame(startFrame);
+            player.setStartFrame(config.getStartFrame());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -78,30 +68,30 @@ public class ConverterBL {
     }
 
     private void calculateNoteListeners(int offsetNotesLeft, int offsetNotesRight) {
-        if (c1x < 0 || c2x < 0 || currentFrame == null) {
+        if (config.getC1x() < 0 || config.getC2x() < 0 || currentFrame == null) {
             return;
         }
 
-        double dist = (c2x - c1x) / (7.0 * (c2Idx - c1Idx));
+        double dist = (config.getC2x() - config.getC1x()) / (7.0 * (config.getC2Idx() - config.getC1Idx()));
         if(dist <= 0) {
             return;
         }
         
-        double x = c1x - offsetNotesLeft * dist;
+        double x = config.getC1x() - offsetNotesLeft * dist;
         int[] offsetDictionary = {0, 1, 3, 5, 7, 8, 10, 12};
-        int noteNumber = c1Idx * 12 - offsetDictionary[offsetNotesLeft];
+        int noteNumber = config.getC1Idx() * 12 - offsetDictionary[offsetNotesLeft];
 
         noteListeners = new ArrayList<>();
         Color whiteColor = null;
         Color blackColor = null;
         
-        while (x <= c2x + offsetNotesRight * dist) {
+        while (x <= config.getC2x() + offsetNotesRight * dist) {
             // add white key
             NoteListener nl = new NoteListener(noteNumber);
             if(whiteColor == null) {
-                whiteColor = new Color(currentFrame.getRGB((int) x, y));
+                whiteColor = new Color(currentFrame.getRGB((int) x, (int) config.getC12y()));
             }
-            nl.set((int) x, y, currentFrame, whiteColor);
+            nl.set((int) x, (int) config.getC12y(), currentFrame, whiteColor);
             noteListeners.add(nl);
             noteNumber++;
             // if the key isn't e or h add a black key to the right of it
@@ -109,9 +99,9 @@ public class ConverterBL {
                 double bx = x + dist / 2.0;
                 nl = new NoteListener(noteNumber);
                 if(blackColor == null) {
-                    blackColor = new Color(currentFrame.getRGB((int) x, y));
+                    blackColor = new Color(currentFrame.getRGB((int) x, (int) config.getC12y()));
                 }
-                nl.set((int) bx, y - blackWhiteVerticalSpacing, currentFrame, blackColor);
+                nl.set((int) bx, (int) config.getC12y() - config.getBlackWhiteVerticalSpacing(), currentFrame, blackColor);
                 noteListeners.add(nl);
                 noteNumber++;
                 x += dist;
@@ -131,12 +121,12 @@ public class ConverterBL {
      * @throws Exception if the file is null or there aren't any noteListeners
      */
     public void convert(boolean maxOneParallelVoice, double staccatopadding) throws Exception {
-        if (file == null || noteListeners.size() < 1) {
+        if (config.getVideo() == null || noteListeners.size() < 1) {
             throw new Exception("Not Initialised");
         }
 
-        FramePlayer player = new FramePlayer(file);
-        player.setStartFrame(startFrame);
+        FramePlayer player = new FramePlayer(config.getVideo());
+        player.setStartFrame(config.getStartFrame());
 
         Note.setFps(player.getFps());
         state = RUNNING;
@@ -157,28 +147,26 @@ public class ConverterBL {
                 player.stop();
             }
 
-            LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, NoteListener.getVoices());
-            gui.setVisible(true);
-
-            // merge all lh voices and all rh voices
-            Voice lh = new Voice(Color.white);
-            Voice rh = new Voice(Color.black);
-            for (Voice voice : NoteListener.getVoices()) {
-                if (voice.getAverageNote() > LH_RH_BALANCE) {
-                    rh.merge(voice);
-                } else {
-                    lh.merge(voice);
-                }
-            }
-
             state = WAITING_FOR_SETTINGS;
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
+                Voice.setTolerance(config.getColorTolerance());
+                LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, NoteListener.getVoices());
+                gui.setVisible(true);
+                config.setLh_rh_balance(gui.balance);
+
                 saveDefaults();
-                if (state != WAITING_FOR_SETTINGS) {
-                    break;
+                // merge all lh voices and all rh voices
+                Voice lh = new Voice(Color.white);
+                Voice rh = new Voice(Color.black);
+                for (Voice voice : NoteListener.getVoices()) {
+                    if (voice.getAverageNote() > config.getLh_rh_balance()) {
+                        rh.merge(voice);
+                    } else {
+                        lh.merge(voice);
+                    }
                 }
-                Note.setBpm(bpm);
+                Note.setBpm(config.getBpm());
 
                 if (maxOneParallelVoice) {
                     lh = limitToOneVoice(lh);
@@ -195,44 +183,33 @@ public class ConverterBL {
                         if (!destination.endsWith(".midi")) {
                             destination += ".midi";
                         }
-                        MidiWriter.write(lh, rh, destination, ppq);
+                        MidiWriter.write(lh, rh, destination, config.getPpq());
                         JOptionPane.showMessageDialog(null, "saving done");
                     } catch (Exception e) {
                         e.printStackTrace();
                         JOptionPane.showMessageDialog(null, "saving failed");
                     }
                 }
-                state = DONE;
+                state = WAITING_FOR_SETTINGS;
             }
         });
         t.start();
     }
-
-    public boolean setBpmPpq(int bpm, int ppq) {
-        if (bpm < 1 || ppq < 1) {
-            return false;
-        }
-        this.bpm = bpm;
-        this.ppq = ppq;
-        getDefault().setBpm(bpm);
-        getDefault().setPpq(ppq);
-        return true;
-    }
     
-    public void setScaleColorTolerance(int scale, int colorTolerance) {
-        getDefault().setScale(scale);
-        getDefault().setColorTolerance(colorTolerance);
+    public void configCompleted() {
+        if(state == WAITING_FOR_SETTINGS) {
+            state = SAVING;
+        }
     }
 
     private void waitForSettings() {
-        bpm = 0;
-        ppq = 0;
-        while (bpm == 0 || ppq == 0) {
+        while (state == WAITING_FOR_SETTINGS) {
             try {
                 Thread.sleep(500);
             } catch (InterruptedException ex) {
             }
         }
+        
     }
 
     /**
@@ -307,7 +284,7 @@ public class ConverterBL {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(defaultsFile)))) {
             Object o;
             while ((o = ois.readObject()) != null) {
-                defaults.add((DefaultData) o);
+                defaults.add((Config) o);
             }
         } catch (EOFException e) {
         } catch (Exception e) {
@@ -315,9 +292,29 @@ public class ConverterBL {
         }
     }
 
+    public Config getConfig() {
+        return config;
+    }
+    
+    private Config loadOrCreateConfig(File file) {
+        if (file == null) {
+            return new Config();
+        }
+
+        for (Config config : defaults) {
+            if (config.getVideo().getName().equals(file.getName())) {
+                return config;
+            }
+        }
+
+        Config d = new Config(file);
+        defaults.add(d);
+        return d;
+    }
+
     public void saveDefaults() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(new File(defaultsFile)))) {
-            for (DefaultData defaultData : defaults) {
+            for (Config defaultData : defaults) {
                 oos.writeObject(defaultData);
             }
             oos.close();
@@ -326,58 +323,32 @@ public class ConverterBL {
         }
     }
 
-    private DefaultData getDefault() {
-        if (file == null) {
-            return new DefaultData();
-        }
-
-        for (DefaultData defaultData : defaults) {
-            if (defaultData.getVideoName().equals(file.getName())) {
-                return defaultData;
-            }
-        }
-
-        DefaultData d = new DefaultData(file.getName());
-        defaults.add(d);
-        return d;
-    }
-
     public ArrayList<NoteListener> getNoteListeners() {
         return noteListeners;
     }
 
     public void setC1(double x, double y, int idx, int offLeft, int offRight) {
-        c1x = (int) x;
-        c1Idx = (int) idx;
-        this.y = (int) y;
+        config.setC1x((int) x);
+        config.setC1Idx(idx);
+        config.setC12y((int) y);
+        config.setOffLeft(offLeft);
+        config.setOffRight(offRight);
 
-        if (c2x >= 0) {
+        if (config.getC2x() >= 0) {
             calculateNoteListeners(offLeft, offRight);
         }
-        
-        DefaultData d = getDefault();
-        d.setC1x(c1x);
-        d.setC12y(y);
-        d.setC1Idx(idx);
-        d.setOffLeft(offLeft);
-        d.setOffRight(offRight);
     }
 
     public void setC2(double x, double y, int idx, int offLeft, int offRight) {
-        c2x = (int) x;
-        c2Idx = (int) idx;
-        this.y = (int) y;
+        config.setC2x((int) x);
+        config.setC2Idx(idx);
+        config.setC12y((int) y);
+        config.setOffLeft(offLeft);
+        config.setOffRight(offRight);
 
-        if (c1x >= 0) {
+        if (config.getC1x() >= 0) {
             calculateNoteListeners(offLeft, offRight);
         }
-        
-        DefaultData d = getDefault();
-        d.setC2x(c2x);
-        d.setC12y(y);
-        d.setC2Idx(idx);
-        d.setOffLeft(offLeft);
-        d.setOffRight(offRight);
     }
 
     public int getState() {
@@ -393,9 +364,8 @@ public class ConverterBL {
     }
 
     public void setStartFrame(int startFrame) {
-        this.startFrame = startFrame;
+        config.setStartFrame(startFrame);
         updateCurrentFrame();
-        getDefault().setStartFrame(startFrame);
     }
 
     public int getCurrentFrameNumber() {

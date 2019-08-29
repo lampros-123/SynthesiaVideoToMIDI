@@ -1,7 +1,7 @@
 package com.matthias.synthesiavideotomidi.gui;
 
 import com.matthias.synthesiavideotomidi.bl.ConverterBL;
-import com.matthias.synthesiavideotomidi.bl.DefaultData;
+import com.matthias.synthesiavideotomidi.bl.Config;
 import com.matthias.synthesiavideotomidi.bl.NoteListener;
 import com.matthias.synthesiavideotomidi.bl.Voice;
 import java.awt.Color;
@@ -21,10 +21,7 @@ public class ConverterGUI extends javax.swing.JFrame {
 
     private final JFileChooser fileChooser = new JFileChooser();
     private String waiting = "c1";
-    private double scale = 1;
-    private int fps = 5;
-    
-    ConverterBL bl = new ConverterBL();
+    ConverterBL bl;
 
     public ConverterGUI() {
         initComponents();
@@ -33,30 +30,29 @@ public class ConverterGUI extends javax.swing.JFrame {
     }
     
     public void reset() {
-        bl.reset();
+        bl = new ConverterBL();
         waiting="c1";
         lbAction.setText("Action: set c" + (int) spC1.getValue());
-        scale = sliderScale.getValue() / 100.0;
-        fps = sliderFPS.getValue();
-        Voice.setTolerance(sliderColorTolerance.getValue());
+        setupDefaults(bl.getConfig());
     }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         try {
+            Config config = bl.getConfig();
             Graphics2D g2 = (Graphics2D) pnCanvas.getGraphics();
             g2.setColor(Color.gray);
             BufferedImage bufferedImage = bl.getCurrentFrame();
             if (bufferedImage == null) {
                 return;
             }
-            g2.drawImage(bufferedImage, 0, 0, (int) (bufferedImage.getWidth() * scale), (int) (bufferedImage.getHeight() * scale), this);
+            g2.drawImage(bufferedImage, 0, 0, (int) (bufferedImage.getWidth() * config.getScale()), (int) (bufferedImage.getHeight() * config.getScale()), this);
 
             if (bl.getState() != ConverterBL.RUNNING) {
                 for (NoteListener nl : bl.getNoteListeners()) {
                     g2.setColor(Color.orange);
-                    g2.fillRect((int) (nl.getPosX() * scale - 2), (int) (nl.getPosY() * scale - 2), 4, 4);
+                    g2.fillRect((int) (nl.getPosX() * config.getScale() - 2), (int) (nl.getPosY() * config.getScale() - 2), 4, 4);
                 }
             }
         } catch (Exception e) {
@@ -64,22 +60,30 @@ public class ConverterGUI extends javax.swing.JFrame {
         }
     }
 
-    private void setupDefaults(DefaultData data) {
-        sliderScale.setValue(data.getScale());
-        sliderColorTolerance.setValue(data.getColorTolerance());
+    private void setupDefaults(Config config) {
+        sliderScale.setValue((int) (config.getScale() * 100));
+        sliderColorTolerance.setValue(config.getColorTolerance());
         Voice.setTolerance(sliderColorTolerance.getValue());
-        spC1.setValue(2);
-        spC2.setValue(8);
-        spBPM.setValue(data.getBpm());
-        spPPQ.setValue(data.getPpq());
-        spStartFrame.setValue(data.getStartFrame());
+        spC1.setValue(config.getC1x());
+        spC2.setValue(config.getC2x());
+        spBPM.setValue(config.getBpm());
+        spPPQ.setValue(config.getPpq());
+        spStartFrame.setValue(config.getStartFrame());
         
-        if(data.getC1Idx() >= 0 && data.getC2Idx() >= 0) {
-            bl.setC1(data.getC1x(), data.getC12y(), data.getC1Idx(), data.getOffLeft(), data.getOffRight());
-            bl.setC2(data.getC2x(), data.getC12y(), data.getC2Idx(), data.getOffLeft(), data.getOffRight());
-            spC1.setValue(data.getC1Idx());
-            spC2.setValue(data.getC2Idx());
+        if(config.getC1Idx() >= 0 && config.getC2Idx() >= 0) {
+            bl.setC1(config.getC1x(), config.getC12y(), config.getC1Idx(), config.getOffLeft(), config.getOffRight());
+            bl.setC2(config.getC2x(), config.getC12y(), config.getC2Idx(), config.getOffLeft(), config.getOffRight());
+            spC1.setValue(config.getC1Idx());
+            spC2.setValue(config.getC2Idx());
         }
+    }
+    
+    
+    private void parseConfigFromGUI(Config config) {
+        config.setBpm((int) spBPM.getValue());
+        config.setPpq((int) spPPQ.getValue());
+        
+        config.setColorTolerance(sliderColorTolerance.getValue());
     }
     
     /**
@@ -407,8 +411,8 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btSetC1ActionPerformed
 
     private void pnCanvasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_pnCanvasMouseClicked
-        double scaledX = evt.getX() / scale;
-        double scaledY = evt.getY() / scale;
+        double scaledX = evt.getX() / bl.getConfig().getScale();
+        double scaledY = evt.getY() / bl.getConfig().getScale();
         if (waiting.equals("c1")) {
             bl.setC1(scaledX, scaledY, (int) spC1.getValue(),
                     (int) spOffC1.getValue(), (int) spOffC2.getValue());
@@ -441,7 +445,7 @@ public class ConverterGUI extends javax.swing.JFrame {
                     while (bl.getState() == ConverterBL.RUNNING) {
                         repaint();
                         try {
-                            Thread.sleep(1000/fps);
+                            Thread.sleep(1000 / sliderFPS.getValue());
                         } catch (InterruptedException ex) {}
                     }
                     btStart.setText("save");
@@ -455,10 +459,14 @@ public class ConverterGUI extends javax.swing.JFrame {
             bl.setState(ConverterBL.WAITING_FOR_SETTINGS);
             btStart.setText("Save");
         } else if (bl.getState() == ConverterBL.WAITING_FOR_SETTINGS) {
-            boolean result = bl.setBpmPpq((int) spBPM.getValue(), (int) spPPQ.getValue());
-            if(!result) {
+            int bpm = (int) spBPM.getValue();
+            int ppq = (int) spPPQ.getValue();
+            if(bpm < 1 || ppq < 1) {
                 JOptionPane.showMessageDialog(this, "bpm or ppq invalid");
+                return;
             }
+            parseConfigFromGUI(bl.getConfig());
+            bl.configCompleted();
         }
 
     }//GEN-LAST:event_btStartActionPerformed
@@ -468,9 +476,9 @@ public class ConverterGUI extends javax.swing.JFrame {
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            setupDefaults(bl.setFile(file));
-            bl.reset();
+            bl = new ConverterBL();
+            bl.setFile(fileChooser.getSelectedFile());
+            setupDefaults(bl.getConfig());
             repaint();
         }
     }//GEN-LAST:event_btChooseFileActionPerformed
@@ -493,24 +501,19 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_spStartFrameStateChanged
 
     private void sliderFPSStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderFPSStateChanged
-        fps = sliderFPS.getValue();
     }//GEN-LAST:event_sliderFPSStateChanged
 
     private void sliderScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderScaleStateChanged
-        scale = sliderScale.getValue() / 100.0;
-        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
+        bl.getConfig().setScale(sliderScale.getValue() / 100.0);
         repaint();
     }//GEN-LAST:event_sliderScaleStateChanged
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        bl.setBpmPpq((int) spBPM.getValue(), (int) spPPQ.getValue());
-        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
+        parseConfigFromGUI(bl.getConfig());
         bl.saveDefaults();
     }//GEN-LAST:event_formWindowClosing
 
     private void sliderColorToleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderColorToleranceStateChanged
-        Voice.setTolerance(sliderColorTolerance.getValue());
-        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
     }//GEN-LAST:event_sliderColorToleranceStateChanged
 
     public static void main(String args[]) {

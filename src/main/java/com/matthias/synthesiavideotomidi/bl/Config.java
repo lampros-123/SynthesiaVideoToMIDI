@@ -1,21 +1,24 @@
 package com.matthias.synthesiavideotomidi.bl;
 
+import java.io.File;
 import java.io.Serializable;
 
 /**
  *
  * @author Matthias
  */
-public class DefaultData implements Serializable {
+public class Config implements Serializable {
 
-    private String videoName;
-    private int bpm, startFrame, ppq;
-    private int c1Idx, c2Idx, c1x, c2x, offLeft, offRight;
-    private int scale, colorTolerance;
+    private File video;
+    private int bpm = 0, startFrame = 100, ppq = 4;
+    private int c1Idx = 2, c2Idx = 8, c1x = -1, c2x = -1, offLeft, offRight;
+    private double scale = 1;
+    private int lh_rh_balance = 60, colorTolerance = 80;
+    private int blackWhiteVerticalSpacing = 40;
     private double c12y;
 
-    public DefaultData(String videoName, int bpm, int startFrame, int ppq, int c1Idx, int c2Idx, int c1, int c2, double c12y, int offLeft, int offRight, int scale, int colorTolerance) {
-        this.videoName = videoName;
+    public Config(File video, int bpm, int startFrame, int ppq, int c1Idx, int c2Idx, int c1, int c2, double c12y, int offLeft, int offRight, double scale, int colorTolerance, int lh_rh_balance, int blackWhiteVerticalSpacing) {
+        this.video = video;
         this.bpm = bpm;
         this.startFrame = startFrame;
         this.ppq = ppq;
@@ -28,31 +31,18 @@ public class DefaultData implements Serializable {
         this.offRight = offRight;
         this.scale = scale;
         this.colorTolerance = colorTolerance;
+        this.lh_rh_balance = lh_rh_balance;
+        this.blackWhiteVerticalSpacing = blackWhiteVerticalSpacing;
     }
 
-    public DefaultData(String videoName) {
-        this.videoName = videoName;
-        c1x = 2;
-        c2x = 8;
-        ppq = 4;
-        startFrame = 100;
-        bpm = 0;
-        c1Idx = -1;
-        c2Idx = -1;
+    public Config(File video) {
+        this.video = video;
+    }
+    public Config() {
     }
 
-    public DefaultData() {
-        c1x = 2;
-        c2x = 8;
-        ppq = 4;
-        startFrame = 100;
-        bpm = 0;
-        c1Idx = -1;
-        c2Idx = -1;
-    }
-
-    public String getVideoName() {
-        return videoName;
+    public File getVideo() {
+        return video;
     }
 
     public int getBpm() {
@@ -115,7 +105,7 @@ public class DefaultData implements Serializable {
         return offRight;
     }
 
-    public int getScale() {
+    public double getScale() {
         return scale;
     }
 
@@ -123,9 +113,12 @@ public class DefaultData implements Serializable {
         return colorTolerance;
     }
 
-    
-    public void setVideoName(String videoName) {
-        this.videoName = videoName;
+    public int getBlackWhiteVerticalSpacing() {
+        return blackWhiteVerticalSpacing;
+    }
+
+    public int getLh_rh_balance() {
+        return lh_rh_balance;
     }
 
     public void setC1Idx(int c1Idx) {
@@ -148,7 +141,7 @@ public class DefaultData implements Serializable {
         this.offRight = offRight;
     }
 
-    public void setScale(int scale) {
+    public void setScale(double scale) {
         this.scale = scale;
     }
 
@@ -156,5 +149,11 @@ public class DefaultData implements Serializable {
         this.colorTolerance = colorTolerance;
     }
 
-    
+    public void setBlackWhiteVerticalSpacing(int blackWhiteVerticalSpacing) {
+        this.blackWhiteVerticalSpacing = blackWhiteVerticalSpacing;
+    }
+
+    public void setLh_rh_balance(int lh_rh_balance) {
+        this.lh_rh_balance = lh_rh_balance;
+    }
 }
