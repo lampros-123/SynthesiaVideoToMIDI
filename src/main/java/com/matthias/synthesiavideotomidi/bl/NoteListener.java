@@ -31,10 +31,12 @@ public class NoteListener implements Serializable{
         posY = y;
     }
 
-    public void set(int x, int y, BufferedImage img) {
+    public void set(int x, int y, BufferedImage img, Color color) {
         posX = x;
         posY = y;
         center(img);
+        defCol = color;
+        prevCol = color;
     }
     
     public static void resetNotes(){
@@ -48,6 +50,10 @@ public class NoteListener implements Serializable{
     public void center(BufferedImage img){
         int leftPx = posX;
         int rightPx = posX;
+        if(posX >= img.getWidth()) {
+            posX = img.getWidth();
+            return;
+        }
         Color col = new Color(img.getRGB(posX, posY));
         
         while(leftPx >= 0 && Voice.isEqual(col, new Color(img.getRGB(leftPx, posY)))){

@@ -3,6 +3,7 @@ package com.matthias.synthesiavideotomidi.bl;
 import com.matthias.synthesiavideotomidi.gui.LeftRightSelectionGUI;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,6 +33,7 @@ public class ConverterBL {
     private File file;
     private int state = WAITING_TO_START;
     private int startFrame = 0;
+    private int blackWhiteVerticalSpacing = 40;
 
     private int bpm, ppq = 0;
 
@@ -70,6 +72,7 @@ public class ConverterBL {
         try {
             player.setStartFrame(startFrame);
         } catch (Exception e) {
+            e.printStackTrace();
         }
         currentFrame = player.next();
     }
@@ -89,20 +92,29 @@ public class ConverterBL {
         int noteNumber = c1Idx * 12 - offsetDictionary[offsetNotesLeft];
 
         noteListeners = new ArrayList<>();
+        Color whiteColor = null;
+        Color blackColor = null;
         
         while (x <= c2x + offsetNotesRight * dist) {
             // add white key
             NoteListener nl = new NoteListener(noteNumber);
-            nl.set((int) x, y, currentFrame);
+            if(whiteColor == null) {
+                whiteColor = new Color(currentFrame.getRGB((int) x, y));
+            }
+            nl.set((int) x, y, currentFrame, whiteColor);
             noteListeners.add(nl);
             noteNumber++;
             // if the key isn't e or h add a black key to the right of it
             if (noteNumber % 12 != 5 && noteNumber % 12 != 0) {
+                double bx = x + dist / 2.0;
                 nl = new NoteListener(noteNumber);
-                nl.set((int) (x + dist / 2.0), y - 60, currentFrame);
+                if(blackColor == null) {
+                    blackColor = new Color(currentFrame.getRGB((int) x, y));
+                }
+                nl.set((int) bx, y - blackWhiteVerticalSpacing, currentFrame, blackColor);
                 noteListeners.add(nl);
                 noteNumber++;
-                x = nl.getPosX() + dist / 2.0;
+                x += dist;
             } else {
                 x = nl.getPosX() + dist;
             }
@@ -118,7 +130,7 @@ public class ConverterBL {
      * @param bpm how fast the video is
      * @throws Exception if the file is null or there aren't any noteListeners
      */
-    public void convert(boolean maxOneParallelVoice) throws Exception {
+    public void convert(boolean maxOneParallelVoice, double staccatopadding) throws Exception {
         if (file == null || noteListeners.size() < 1) {
             throw new Exception("Not Initialised");
         }
@@ -132,9 +144,8 @@ public class ConverterBL {
             // go through all frames and save what notes are played
             try {
                 currentFrameNumber = 0;
-                while (player.hasNext() && state == RUNNING) {
+                while (player.hasNext() && state == RUNNING && (currentFrame = player.next()) != null) {
 //                    if(paused) continue;
-                    currentFrame = player.next();
                     for (NoteListener noteListener : noteListeners) {
                         noteListener.listen(currentFrame, currentFrameNumber);
                     }
@@ -160,6 +171,7 @@ public class ConverterBL {
                 }
             }
 
+            state = WAITING_FOR_SETTINGS;
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
                 saveDefaults();
@@ -174,7 +186,7 @@ public class ConverterBL {
                 }
 
                 JFileChooser chooser = new JFileChooser();
-                chooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\Documents\\Klavier\\MidiResults"));
+                chooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\OneDrive - HTBLA Kaindorf\\Klavier\\MidiResults"));
                 int result = chooser.showSaveDialog(null);
 
                 if (result == JFileChooser.APPROVE_OPTION) {
@@ -190,6 +202,7 @@ public class ConverterBL {
                         JOptionPane.showMessageDialog(null, "saving failed");
                     }
                 }
+                state = DONE;
             }
         });
         t.start();
@@ -197,8 +210,6 @@ public class ConverterBL {
 
     public boolean setBpmPpq(int bpm, int ppq) {
         if (bpm < 1 || ppq < 1) {
-            JOptionPane.showMessageDialog(null, bpm);
-            JOptionPane.showMessageDialog(null, ppq);
             return false;
         }
         this.bpm = bpm;
@@ -206,6 +217,11 @@ public class ConverterBL {
         getDefault().setBpm(bpm);
         getDefault().setPpq(ppq);
         return true;
+    }
+    
+    public void setScaleColorTolerance(int scale, int colorTolerance) {
+        getDefault().setScale(scale);
+        getDefault().setColorTolerance(colorTolerance);
     }
 
     private void waitForSettings() {
@@ -269,6 +285,23 @@ public class ConverterBL {
         return voice;
     }
 
+    /**
+     * TODO: Fix (not working correctly)
+     * if a note ends shortly before another note (up to maxfillbeats) it is 
+     * lengthend to fill the gap between the two of them in order to fix staccato errors
+     * @param voice
+     * @param maxfillbeats
+     * @return 
+     */
+    public void fillStaccato(Voice voice, double maxfillbeats) {
+        for (Note note : voice.getNotes()) {
+            Note next = voice.getNextNote(note);
+            System.out.println(note.getEndBeat() + " " + note.getStartBeat());
+            double padding = Math.min(next.getStartBeat() - note.getEndBeat(), maxfillbeats);
+            note.setDuration(note.getDuration() + Note.beatToFrames(padding));
+        }
+    }
+
     private void loadDefaults() {
         defaults = new ArrayList<>();
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(defaultsFile)))) {
@@ -276,7 +309,9 @@ public class ConverterBL {
             while ((o = ois.readObject()) != null) {
                 defaults.add((DefaultData) o);
             }
+        } catch (EOFException e) {
         } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

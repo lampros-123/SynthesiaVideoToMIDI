@@ -8,10 +8,10 @@ import java.util.ArrayList;
  * @author Matthias
  */
 public class Voice {
-    
+
     // higher = fewer colors, lower = more differntiation between colors
     private static int tolerance = 80;
-    
+
     private ArrayList<Note> notes = new ArrayList<>();
     private Color color;
     private int lhRh = 0;
@@ -43,19 +43,40 @@ public class Voice {
     public boolean isOfTrack(Color c) {
         return isEqual(color, c);
     }
-    
+
     /**
      * get all notes at beat with a tolerance of 1/4th beat
+     *
      * @param beat
-     * @return 
+     * @return
      */
     public ArrayList<Note> getNotesAtBeat(double beat) {
         ArrayList<Note> beatNotes = new ArrayList<>();
         for (Note note : notes) {
-            if(Math.abs(note.getStartBeat() - beat) < .25)
+            if (Math.abs(note.getStartBeat() - beat) < .25) {
                 beatNotes.add(note);
+            }
         }
         return beatNotes;
+    }
+
+    /**
+     * returns the first note that starts after the given note has ended or 0
+     * duration note with startframe equal to endframe of the given note
+     *
+     * @param note
+     * @return
+     */
+    public Note getNextNote(Note note) {
+        Note next = null;
+        for (Note n : notes) {
+            if(n.getStartFrame() >= note.getEndFrame() && (next == null || n.getStartFrame() < next.getStartFrame()))
+                next = n;
+        }
+        if (next == null) {
+            return new Note(note.getEndFrame(), 0, 0);
+        }
+        return next;
     }
 
     public ArrayList<Note> getNotes() {
@@ -68,7 +89,7 @@ public class Voice {
             average += note.getNoteNumber();
         }
         average /= notes.size();
-        return (int) average; 
+        return (int) average;
     }
 
     public Color getColor() {

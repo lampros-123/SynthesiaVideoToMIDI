@@ -1,7 +1,10 @@
 package com.matthias.synthesiavideotomidi.gui;
 
 import com.matthias.synthesiavideotomidi.bl.Voice;
+import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JLabel;
@@ -34,9 +37,33 @@ public class LeftRightSelectionGUI extends javax.swing.JDialog {
         for (Voice voice : voices) {
             JPanel p  = new JPanel();
             p.setBackground(voice.getColor());
-            JLabel firstOccurence = new JLabel();
-            firstOccurence.setText(String.format("%.0f", voice.getNotes().get(0).getStartBeat()));
-            p.add(firstOccurence);
+            p.addMouseListener(new MouseListener() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    voices.remove(voice);
+                    updateVoices();
+                }
+                @Override
+                public void mousePressed(MouseEvent e) {
+                }
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                }
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                }
+                @Override
+                public void mouseExited(MouseEvent e) {
+                }
+            });
+            JLabel numNotes = new JLabel();
+            numNotes.setText(String.format("%d", voice.getNotes().size()));
+            int gray = voice.getColor().getRed() + voice.getColor().getGreen() + voice.getColor().getBlue();
+            gray /= 3;
+            if(gray < 128) {
+                numNotes.setForeground(Color.white);
+            }
+            p.add(numNotes);
             
             if(voice.getAverageNote() < balance) {
                 pnLH.add(p);
@@ -44,9 +71,8 @@ public class LeftRightSelectionGUI extends javax.swing.JDialog {
                 pnRH.add(p);
             }
         }
-        pnLH.revalidate();
-        pnRH.revalidate();
-
+        validate();
+        repaint();
     }
 
     @SuppressWarnings("unchecked")

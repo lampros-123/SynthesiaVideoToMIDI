@@ -1,7 +1,6 @@
 package com.matthias.synthesiavideotomidi.bl;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 
 /**
  *
@@ -12,9 +11,10 @@ public class DefaultData implements Serializable {
     private String videoName;
     private int bpm, startFrame, ppq;
     private int c1Idx, c2Idx, c1x, c2x, offLeft, offRight;
-    double c12y;
+    private int scale, colorTolerance;
+    private double c12y;
 
-    public DefaultData(String videoName, int bpm, int startFrame, int ppq, int c1Idx, int c2Idx, int c1, int c2, double c12y, int offLeft, int offRight) {
+    public DefaultData(String videoName, int bpm, int startFrame, int ppq, int c1Idx, int c2Idx, int c1, int c2, double c12y, int offLeft, int offRight, int scale, int colorTolerance) {
         this.videoName = videoName;
         this.bpm = bpm;
         this.startFrame = startFrame;
@@ -26,6 +26,8 @@ public class DefaultData implements Serializable {
         this.c12y = c12y;
         this.offLeft = offLeft;
         this.offRight = offRight;
+        this.scale = scale;
+        this.colorTolerance = colorTolerance;
     }
 
     public DefaultData(String videoName) {
@@ -113,6 +115,15 @@ public class DefaultData implements Serializable {
         return offRight;
     }
 
+    public int getScale() {
+        return scale;
+    }
+
+    public int getColorTolerance() {
+        return colorTolerance;
+    }
+
+    
     public void setVideoName(String videoName) {
         this.videoName = videoName;
     }
@@ -135,6 +146,14 @@ public class DefaultData implements Serializable {
 
     public void setOffRight(int offRight) {
         this.offRight = offRight;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
+    }
+
+    public void setColorTolerance(int colorTolerance) {
+        this.colorTolerance = colorTolerance;
     }
 
     

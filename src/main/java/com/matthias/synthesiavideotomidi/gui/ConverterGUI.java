@@ -38,7 +38,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         lbAction.setText("Action: set c" + (int) spC1.getValue());
         scale = sliderScale.getValue() / 100.0;
         fps = sliderFPS.getValue();
-        Voice.setTolerance((int) sliderColorTolerance.getValue());
+        Voice.setTolerance(sliderColorTolerance.getValue());
     }
 
     @Override
@@ -65,6 +65,9 @@ public class ConverterGUI extends javax.swing.JFrame {
     }
 
     private void setupDefaults(DefaultData data) {
+        sliderScale.setValue(data.getScale());
+        sliderColorTolerance.setValue(data.getColorTolerance());
+        Voice.setTolerance(sliderColorTolerance.getValue());
         spC1.setValue(2);
         spC2.setValue(8);
         spBPM.setValue(data.getBpm());
@@ -115,6 +118,8 @@ public class ConverterGUI extends javax.swing.JFrame {
         cbSingleVoice = new javax.swing.JCheckBox();
         sliderColorTolerance = new javax.swing.JSlider();
         jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        cbStaccatoPadding = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -233,7 +238,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 9;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(btFix, gridBagConstraints);
@@ -262,7 +267,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         lbAction.setText("Action: nothing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         jPanel1.add(lbAction, gridBagConstraints);
@@ -289,14 +294,14 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         gridBagConstraints.gridwidth = 2;
         jPanel1.add(sliderFPS, gridBagConstraints);
 
         jLabel3.setText("FPS");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 10;
         jPanel1.add(jLabel3, gridBagConstraints);
 
         sliderScale.setMaximum(150);
@@ -309,7 +314,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         jPanel1.add(sliderScale, gridBagConstraints);
@@ -317,7 +322,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         jLabel4.setText("Scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.gridheight = 2;
         jPanel1.add(jLabel4, gridBagConstraints);
 
@@ -362,7 +367,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         jPanel1.add(sliderColorTolerance, gridBagConstraints);
@@ -370,9 +375,26 @@ public class ConverterGUI extends javax.swing.JFrame {
         jLabel7.setText("Color Tolerance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridheight = 2;
         jPanel1.add(jLabel7, gridBagConstraints);
+
+        jLabel8.setText("staccato padding");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(jLabel8, gridBagConstraints);
+
+        cbStaccatoPadding.setEditable(true);
+        cbStaccatoPadding.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0", "0.25", "0.5", "1", "2", "4" }));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(cbStaccatoPadding, gridBagConstraints);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
@@ -412,7 +434,8 @@ public class ConverterGUI extends javax.swing.JFrame {
         if (bl.getState() == ConverterBL.WAITING_TO_START) {
             bl.reset();
             try {
-                bl.convert(cbSingleVoice.isSelected());
+                double staccatopadding = Double.parseDouble(cbStaccatoPadding.getSelectedItem().toString());
+                bl.convert(cbSingleVoice.isSelected(), staccatopadding);
                 btStart.setText("Stop");
                 Thread t = new Thread(() -> {
                     while (bl.getState() == ConverterBL.RUNNING) {
@@ -426,6 +449,7 @@ public class ConverterGUI extends javax.swing.JFrame {
                 t.start();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Converting has failed");
+                ex.printStackTrace();
             }
         } else if (bl.getState() == ConverterBL.RUNNING) {
             bl.setState(ConverterBL.WAITING_FOR_SETTINGS);
@@ -440,13 +464,13 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_btStartActionPerformed
 
     private void btChooseFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btChooseFileActionPerformed
-        fileChooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\Documents\\Klavier"));
+        fileChooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\OneDrive - HTBLA Kaindorf\\Klavier"));
         int returnVal = fileChooser.showOpenDialog(this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
-            bl.reset();
             setupDefaults(bl.setFile(file));
+            bl.reset();
             repaint();
         }
     }//GEN-LAST:event_btChooseFileActionPerformed
@@ -474,16 +498,19 @@ public class ConverterGUI extends javax.swing.JFrame {
 
     private void sliderScaleStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderScaleStateChanged
         scale = sliderScale.getValue() / 100.0;
+        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
         repaint();
     }//GEN-LAST:event_sliderScaleStateChanged
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         bl.setBpmPpq((int) spBPM.getValue(), (int) spPPQ.getValue());
+        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
         bl.saveDefaults();
     }//GEN-LAST:event_formWindowClosing
 
     private void sliderColorToleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderColorToleranceStateChanged
-        Voice.setTolerance((int) sliderColorTolerance.getValue());
+        Voice.setTolerance(sliderColorTolerance.getValue());
+        bl.setScaleColorTolerance(sliderScale.getValue(), sliderColorTolerance.getValue());
     }//GEN-LAST:event_sliderColorToleranceStateChanged
 
     public static void main(String args[]) {
@@ -523,6 +550,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JButton btSetC2;
     private javax.swing.JButton btStart;
     private javax.swing.JCheckBox cbSingleVoice;
+    private javax.swing.JComboBox<String> cbStaccatoPadding;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -530,6 +558,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbAction;
     private javax.swing.JPanel pnCanvas;

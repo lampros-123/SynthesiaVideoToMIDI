@@ -15,6 +15,9 @@ public class Note {
         startFrame -= firstNoteFrame;
         this.startFrame = startFrame;
         this.durationFrames = durationFrames;
+        if(getDuration() > 16) {
+            this.durationFrames = 0;
+        }
 //        startBeat = (startFrame / fps) * (bpm / 60.0);
 //        this.duration = (durationFrames / fps) * (bpm / 60.0);
         noteNumber = idx;
@@ -56,8 +59,14 @@ public class Note {
     public double getStartBeat() {
         return (startFrame / fps) * (bpm / 60.0);
     }
+    public double getEndBeat() {
+        return (getEndFrame() / fps) * (bpm / 60.0);
+    }
     public int getStartTick(int ppq){
         return (int) Math.round(getStartBeat() * ppq);
+    }
+    public int getEndTick(int ppq){
+        return (int) Math.round(getEndBeat() * ppq);
     }
 
     public void setDuration(double durationFrames) {
@@ -73,10 +82,14 @@ public class Note {
         return startFrame;
     }
 
+    public double getEndFrame() {
+        return startFrame + durationFrames;
+    }
+
     public double getDurationFrames() {
         return durationFrames;
     }
-
+    
     public static void setFps(double fps) {
         Note.fps = fps;
     }
@@ -85,5 +98,7 @@ public class Note {
         Note.bpm = bpm;
     }
     
-    
+    public static double beatToFrames(double beats) {
+        return beats * (60.0 / bpm ) * fps;
+    }
 }
