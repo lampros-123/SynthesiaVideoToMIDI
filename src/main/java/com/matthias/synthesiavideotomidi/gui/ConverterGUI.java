@@ -70,6 +70,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         spBPM.setValue(config.getBpm());
         spPPQ.setValue(config.getPpq());
         spStartFrame.setValue(config.getStartFrame());
+        spFirstFrameOfSong.setValue(config.getFirstFrameOfSong());
         
         if(config.getC1Idx() >= 0 && config.getC2Idx() >= 0) {
             bl.setC1(config.getC1x(), config.getC12y(), config.getC1Idx(), config.getOffLeft(), config.getOffRight());
@@ -84,6 +85,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         config.setBpm((int) spBPM.getValue());
         config.setPpq((int) spPPQ.getValue());
         config.setColorTolerance(sliderColorTolerance.getValue());
+        config.setFirstFrameOfSong((int) spFirstFrameOfSong.getValue());
     }
     
     /**
@@ -126,6 +128,15 @@ public class ConverterGUI extends javax.swing.JFrame {
         cbStaccatoPadding = new javax.swing.JComboBox<>();
         sliderYDistance = new javax.swing.JSlider();
         jLabel9 = new javax.swing.JLabel();
+        btConfirmBaseColors = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        spFirstFrameOfSong = new javax.swing.JSpinner();
+        btSetAsFirstFrame = new javax.swing.JButton();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        jMenu1 = new javax.swing.JMenu();
+        menuGoTo = new javax.swing.JMenu();
+        miTime = new javax.swing.JMenuItem();
+        miBar = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -187,7 +198,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
@@ -198,16 +209,14 @@ public class ConverterGUI extends javax.swing.JFrame {
         jLabel1.setText("bpm:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel1, gridBagConstraints);
 
         spBPM.setModel(new javax.swing.SpinnerNumberModel(150, 1, null, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 11;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 2.0;
         jPanel1.add(spBPM, gridBagConstraints);
@@ -247,17 +256,17 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(btFix, gridBagConstraints);
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
-        jLabel2.setText("start frame");
+        jLabel2.setText("first frame of song");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel2, gridBagConstraints);
 
@@ -270,29 +279,30 @@ public class ConverterGUI extends javax.swing.JFrame {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(spStartFrame, gridBagConstraints);
 
         lbAction.setText("Action: nothing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 15;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(lbAction, gridBagConstraints);
 
         spOffC1.setModel(new javax.swing.SpinnerNumberModel(0, 0, 7, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(spOffC1, gridBagConstraints);
 
         spOffC2.setModel(new javax.swing.SpinnerNumberModel(0, 0, 7, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(spOffC2, gridBagConstraints);
 
         sliderFPS.setMaximum(20);
@@ -305,16 +315,16 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(sliderFPS, gridBagConstraints);
 
         jLabel3.setText("FPS");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel3, gridBagConstraints);
 
         sliderScale.setMaximum(150);
@@ -327,24 +337,23 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(sliderScale, gridBagConstraints);
 
         jLabel4.setText("Scale");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel4, gridBagConstraints);
 
         jLabel5.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         jLabel5.setText("ppq (rec: 2,4,12)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(jLabel5, gridBagConstraints);
@@ -352,8 +361,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         spPPQ.setModel(new javax.swing.SpinnerNumberModel(4, 1, 120, 1));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(spPPQ, gridBagConstraints);
@@ -361,7 +369,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 16;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel6, gridBagConstraints);
@@ -369,8 +377,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         cbSingleVoice.setText("Single Voice");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 13;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 17;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(cbSingleVoice, gridBagConstraints);
 
@@ -384,21 +391,22 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(sliderColorTolerance, gridBagConstraints);
 
         jLabel7.setText("Color Tolerance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel7, gridBagConstraints);
 
         jLabel8.setText("staccato padding");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(jLabel8, gridBagConstraints);
@@ -407,8 +415,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         cbStaccatoPadding.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0", "0.25", "0.5", "1", "2", "4" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(cbStaccatoPadding, gridBagConstraints);
@@ -423,17 +430,91 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(sliderYDistance, gridBagConstraints);
 
         jLabel9.setText("y distance notelisteners");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel9, gridBagConstraints);
 
+        btConfirmBaseColors.setText("confirm Base Colors");
+        btConfirmBaseColors.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btConfirmBaseColorsActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel1.add(btConfirmBaseColors, gridBagConstraints);
+
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel10.setText("start frame");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel1.add(jLabel10, gridBagConstraints);
+
+        spFirstFrameOfSong.setModel(new javax.swing.SpinnerNumberModel(100, null, null, 1));
+        spFirstFrameOfSong.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spFirstFrameOfSongStateChanged(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        jPanel1.add(spFirstFrameOfSong, gridBagConstraints);
+
+        btSetAsFirstFrame.setText("set as first frame");
+        btSetAsFirstFrame.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btSetAsFirstFrameActionPerformed(evt);
+            }
+        });
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel1.add(btSetAsFirstFrame, gridBagConstraints);
+
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
+
+        jMenu1.setText("File");
+        jMenuBar1.add(jMenu1);
+
+        menuGoTo.setText("Go To");
+
+        miTime.setText("Time");
+        miTime.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miTimeActionPerformed(evt);
+            }
+        });
+        menuGoTo.add(miTime);
+
+        miBar.setText("Bar");
+        miBar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                miBarActionPerformed(evt);
+            }
+        });
+        menuGoTo.add(miBar);
+
+        jMenuBar1.add(menuGoTo);
+
+        setJMenuBar(jMenuBar1);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -469,7 +550,6 @@ public class ConverterGUI extends javax.swing.JFrame {
 
     private void btStartActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btStartActionPerformed
         if (bl.getState() == ConverterBL.WAITING_TO_START) {
-            bl.reset();
             try {
                 double staccatopadding = Double.parseDouble(cbStaccatoPadding.getSelectedItem().toString());
                 bl.convert(cbSingleVoice.isSelected(), staccatopadding);
@@ -547,6 +627,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     private void sliderColorToleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderColorToleranceStateChanged
+        Voice.setTolerance(sliderColorTolerance.getValue());
     }//GEN-LAST:event_sliderColorToleranceStateChanged
 
     private void sliderYDistanceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderYDistanceStateChanged
@@ -554,6 +635,41 @@ public class ConverterGUI extends javax.swing.JFrame {
         bl.NoteListenerYPositionUpdated();
         repaint();
     }//GEN-LAST:event_sliderYDistanceStateChanged
+
+    private void btConfirmBaseColorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btConfirmBaseColorsActionPerformed
+        ConfirmNotelistenerBaseColors gui = new ConfirmNotelistenerBaseColors(this, true, bl.getNoteListeners());
+        gui.setVisible(true);
+    }//GEN-LAST:event_btConfirmBaseColorsActionPerformed
+
+    private void miTimeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miTimeActionPerformed
+        TimeInputDialog dlg = new TimeInputDialog(this, true);
+        dlg.setVisible(true);
+        if(dlg.wasSuccessful()) {
+            spStartFrame.setValue((int) (dlg.getSeconds() * bl.getFPS()));
+        }
+    }//GEN-LAST:event_miTimeActionPerformed
+
+    private void miBarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_miBarActionPerformed
+        int result = JOptionPane.showConfirmDialog(this, "Confirm BPM and FIRST FRAME OF SONG are set correctly", "Confirm", JOptionPane.OK_CANCEL_OPTION);
+        if(result != JOptionPane.OK_OPTION) return;
+        BeatInputDialog dlg = new BeatInputDialog(this, true);
+        dlg.setVisible(true);
+        if(dlg.wasSuccessful()) {
+            double bpm = (int) spBPM.getValue();
+            double desiredBeat = dlg.getBeat();
+            double secondsTilBeat = desiredBeat / bpm * 60.0;
+            int framesTilBeat = (int) (secondsTilBeat * bl.getFPS());
+            int baseFrame = (int) spFirstFrameOfSong.getValue();
+            spStartFrame.setValue(baseFrame + framesTilBeat);
+        }
+    }//GEN-LAST:event_miBarActionPerformed
+
+    private void spFirstFrameOfSongStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spFirstFrameOfSongStateChanged
+    }//GEN-LAST:event_spFirstFrameOfSongStateChanged
+
+    private void btSetAsFirstFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSetAsFirstFrameActionPerformed
+        spFirstFrameOfSong.setValue(spStartFrame.getValue());
+    }//GEN-LAST:event_btSetAsFirstFrameActionPerformed
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
@@ -587,13 +703,16 @@ public class ConverterGUI extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btChooseFile;
+    private javax.swing.JButton btConfirmBaseColors;
     private javax.swing.JButton btFix;
+    private javax.swing.JButton btSetAsFirstFrame;
     private javax.swing.JButton btSetC1;
     private javax.swing.JButton btSetC2;
     private javax.swing.JButton btStart;
     private javax.swing.JCheckBox cbSingleVoice;
     private javax.swing.JComboBox<String> cbStaccatoPadding;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -602,8 +721,13 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JMenu jMenu1;
+    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbAction;
+    private javax.swing.JMenu menuGoTo;
+    private javax.swing.JMenuItem miBar;
+    private javax.swing.JMenuItem miTime;
     private javax.swing.JPanel pnCanvas;
     private javax.swing.JSlider sliderColorTolerance;
     private javax.swing.JSlider sliderFPS;
@@ -612,6 +736,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JSpinner spBPM;
     private javax.swing.JSpinner spC1;
     private javax.swing.JSpinner spC2;
+    private javax.swing.JSpinner spFirstFrameOfSong;
     private javax.swing.JSpinner spOffC1;
     private javax.swing.JSpinner spOffC2;
     private javax.swing.JSpinner spPPQ;

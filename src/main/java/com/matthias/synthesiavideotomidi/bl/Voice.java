@@ -74,7 +74,7 @@ public class Voice {
                 next = n;
         }
         if (next == null) {
-            return new Note(note.getEndFrame(), 0, 0);
+            return new Note(note.getEndFrame(), 0, 0, note.getColor());
         }
         return next;
     }

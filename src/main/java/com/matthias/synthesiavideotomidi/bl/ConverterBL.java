@@ -7,6 +7,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -46,13 +47,6 @@ public class ConverterBL {
         updateCurrentFrame();
     }
 
-    public void reset() {
-        NoteListener.resetNotes();
-        state = WAITING_TO_START;
-        currentFrame = null;
-        currentFrameNumber = 0;
-    }
-
     private void updateCurrentFrame() {
         if (config.getVideo() == null) {
             return;
@@ -82,35 +76,20 @@ public class ConverterBL {
         int noteNumber = config.getC1Idx() * 12 - offsetDictionary[offsetNotesLeft];
 
         noteListeners = new ArrayList<>();
-        Color whiteColor = null;
-        Color blackColor = null;
-        
         while (x <= config.getC2x() + offsetNotesRight * dist) {
             // add white key
-            NoteListener nl = new NoteListener(noteNumber);
-            if(whiteColor == null) {
-                whiteColor = new Color(currentFrame.getRGB((int) x, (int) config.getC12y()));
-            }
-            nl.set((int) x, (int) config.getC12y(), currentFrame, whiteColor);
+            NoteListener nl = new NoteListener(noteNumber, (int) x, (int) config.getC12y(), currentFrame);
             noteListeners.add(nl);
             noteNumber++;
             // if the key isn't e or h add a black key to the right of it
             if (noteNumber % 12 != 5 && noteNumber % 12 != 0) {
                 double bx = x + dist / 2.0;
-                nl = new NoteListener(noteNumber);
-                if(blackColor == null) {
-                    blackColor = new Color(currentFrame.getRGB((int) x, (int) config.getC12y()));
-                }
-                nl.set((int) bx, (int) config.getC12y() - config.getBlackWhiteVerticalSpacing(), currentFrame, blackColor);
+                double by = config.getC12y() - config.getBlackWhiteVerticalSpacing();
+                nl = new NoteListener(noteNumber, (int) bx, (int) by, currentFrame);
                 noteListeners.add(nl);
                 noteNumber++;
-                x += dist;
-            } else {
-                x = nl.getPosX() + dist;
             }
-        }
-        for (NoteListener nl : noteListeners) {
-//            nl.center(currentFrame);
+            x += dist;
         }
     }
     
@@ -137,6 +116,7 @@ public class ConverterBL {
         player.setStartFrame(config.getStartFrame());
 
         Note.setFps(player.getFps());
+        Voice.setTolerance(config.getColorTolerance());
         state = RUNNING;
         Thread t = new Thread(() -> {
             // go through all frames and save what notes are played
@@ -159,7 +139,30 @@ public class ConverterBL {
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
                 Voice.setTolerance(config.getColorTolerance());
-                LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, NoteListener.getVoices());
+                
+                // merge notes into voices based on the color tolerance
+                ArrayList<Note> allNotes = new ArrayList<>();
+                for (NoteListener noteListener : noteListeners) {
+                    allNotes.addAll(noteListener.getNotes());
+                }
+                ArrayList<Voice> voices = new ArrayList<>();
+                for (Note note : allNotes) {
+                    addToVoice: {
+                        // check if the note fits into an already existing voice
+                        for (Voice voice : voices) {
+                            // if it does, add it to that voice
+                            if(voice.isOfTrack(note.getColor())){
+                                voice.addNote(note);
+                                break addToVoice;
+                            }
+                        }
+                        Voice v = new Voice(note.getColor());
+                        v.addNote(note);
+                        voices.add(v);
+                    }
+                }
+                
+                LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, voices);
                 gui.setVisible(true);
                 config.setLh_rh_balance(gui.balance);
 
@@ -167,7 +170,7 @@ public class ConverterBL {
                 // merge all lh voices and all rh voices
                 Voice lh = new Voice(Color.white);
                 Voice rh = new Voice(Color.black);
-                for (Voice voice : NoteListener.getVoices()) {
+                for (Voice voice : voices) {
                     if (voice.getAverageNote() > config.getLh_rh_balance()) {
                         rh.merge(voice);
                     } else {
@@ -261,7 +264,7 @@ public class ConverterBL {
                 if (note.getDuration() < curNote.getDuration() - .25) {
                     Note newNote = new Note(curNote.getStartFrame() + note.getDurationFrames(),
                             curNote.getDurationFrames() - note.getDurationFrames(),
-                            curNote.getNoteNumber());
+                            curNote.getNoteNumber(), curNote.getColor());
                     curNote.setDuration(note.getDuration());
                     voice.addNote(newNote);
                 }
@@ -295,6 +298,8 @@ public class ConverterBL {
                 defaults.add((Config) o);
             }
         } catch (EOFException e) {
+        } catch (InvalidClassException e) {
+            System.err.println("Config Class has changed, all old configs have been lost");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -380,4 +385,8 @@ public class ConverterBL {
         return currentFrameNumber;
     }
 
+    public double getFPS() {
+        FramePlayer player = new FramePlayer(config.getVideo());
+        return player.getFps();
+    }
 }

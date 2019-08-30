@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * @author Matthias
  */
 public class NoteListener implements Serializable{
-    private static ArrayList<Voice> voices = new ArrayList<>();
+    private ArrayList<Note> notes = new ArrayList<>();
 
     private int posX = -1;
     private int posY = -1;
@@ -22,27 +22,16 @@ public class NoteListener implements Serializable{
     private int noteStartFrame = -1;
     private static int firstNoteFrame = -1;
 
-    public NoteListener(int idx) {
+    public NoteListener(int idx, int x, int y, BufferedImage img) {
         this.idx = idx;
-    }
-    public NoteListener(int idx, int x, int y) {
-        this.idx = idx;
-        posX = x;
-        posY = y;
-    }
-
-    public void set(int x, int y, BufferedImage img, Color color) {
         posX = x;
         posY = y;
         center(img);
+        Color color =  new Color(img.getRGB((int) x, (int) y));
         defCol = color;
         prevCol = color;
     }
-    
-    public static void resetNotes(){
-        voices.clear();
-    }
-    
+
     /**
      * automatically center the notelistener on the note it landed on
      * @param img the first frame of the video
@@ -92,25 +81,8 @@ public class NoteListener implements Serializable{
         // unless the previous color was the default color, a note must have ended
         if (!Voice.isEqual(prevCol, defCol)) {
             if(firstNoteFrame < 0) firstNoteFrame = frameCount;
-            Note n = new Note(noteStartFrame, frameCount - noteStartFrame, idx);
-            
-            // check if the note fits into an already existing voice
-            boolean foundVoice = false;
-            for (Voice voice : voices) {
-                // if it does, add it to that voice
-                if(voice.isOfTrack(prevCol)){
-                    foundVoice = true;
-                    voice.addNote(n);
-                    break;
-                }
-            }
-            
-            // if it doesn't, create a new voice with that color and add the note to it
-            if(!foundVoice){
-                Voice v = new Voice(prevCol);
-                v.addNote(n);
-                voices.add(v);
-            }
+            Note note = new Note(noteStartFrame, frameCount - noteStartFrame, idx, prevCol);
+            notes.add(note);
         }
 
         
@@ -145,8 +117,8 @@ public class NoteListener implements Serializable{
         return prevCol;
     }
 
-    public static ArrayList<Voice> getVoices() {
-        return voices;
+    public ArrayList<Note> getNotes() {
+        return notes;
     }
 
     public int getIdx() {
@@ -155,5 +127,13 @@ public class NoteListener implements Serializable{
 
     public void setPosY(int posY) {
         this.posY = posY;
+    }
+
+    public Color getDefCol() {
+        return defCol;
+    }
+
+    public void setDefCol(Color defCol) {
+        this.defCol = defCol;
     }
 }

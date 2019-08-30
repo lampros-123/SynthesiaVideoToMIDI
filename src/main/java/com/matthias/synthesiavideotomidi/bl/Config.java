@@ -10,30 +10,12 @@ import java.io.Serializable;
 public class Config implements Serializable {
 
     private File video;
-    private int bpm = 0, startFrame = 100, ppq = 4;
+    private int bpm = 0, startFrame = 100, firstFrameOfSong = 100, ppq = 4;
     private int c1Idx = 2, c2Idx = 8, c1x = -1, c2x = -1, offLeft, offRight;
     private double scale = 1;
     private int lh_rh_balance = 60, colorTolerance = 80;
     private int blackWhiteVerticalSpacing = 40;
     private double c12y;
-
-    public Config(File video, int bpm, int startFrame, int ppq, int c1Idx, int c2Idx, int c1, int c2, double c12y, int offLeft, int offRight, double scale, int colorTolerance, int lh_rh_balance, int blackWhiteVerticalSpacing) {
-        this.video = video;
-        this.bpm = bpm;
-        this.startFrame = startFrame;
-        this.ppq = ppq;
-        this.c1Idx = c1Idx;
-        this.c2Idx = c2Idx;
-        this.c1x = c1;
-        this.c2x = c2;
-        this.c12y = c12y;
-        this.offLeft = offLeft;
-        this.offRight = offRight;
-        this.scale = scale;
-        this.colorTolerance = colorTolerance;
-        this.lh_rh_balance = lh_rh_balance;
-        this.blackWhiteVerticalSpacing = blackWhiteVerticalSpacing;
-    }
 
     public Config(File video) {
         this.video = video;
@@ -155,5 +137,13 @@ public class Config implements Serializable {
 
     public void setLh_rh_balance(int lh_rh_balance) {
         this.lh_rh_balance = lh_rh_balance;
+    }
+
+    public void setFirstFrameOfSong(int firstFrameOfSong) {
+        this.firstFrameOfSong = firstFrameOfSong;
+    }
+
+    public int getFirstFrameOfSong() {
+        return firstFrameOfSong;
     }
 }

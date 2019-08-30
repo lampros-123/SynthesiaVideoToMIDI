@@ -1,5 +1,7 @@
 package com.matthias.synthesiavideotomidi.bl;
 
+import java.awt.Color;
+
 public class Note {
     private static double fps = 24;
     private static double bpm = 120;
@@ -9,8 +11,9 @@ public class Note {
     private double startFrame;
     private double durationFrames;
     private double noteNumber;
+    private Color color;
     
-    public Note(double startFrame, double durationFrames, double idx) {
+    public Note(double startFrame, double durationFrames, double idx, Color color) {
         if(firstNoteFrame < 0 || startFrame < firstNoteFrame) firstNoteFrame = startFrame;
         startFrame -= firstNoteFrame;
         this.startFrame = startFrame;
@@ -18,9 +21,8 @@ public class Note {
         if(getDuration() > 16) {
             this.durationFrames = 0;
         }
-//        startBeat = (startFrame / fps) * (bpm / 60.0);
-//        this.duration = (durationFrames / fps) * (bpm / 60.0);
         noteNumber = idx;
+        this.color = color;
     }
     
     public static void setFpsBpm(double _fps, double _bpm){
@@ -100,5 +102,9 @@ public class Note {
     
     public static double beatToFrames(double beats) {
         return beats * (60.0 / bpm ) * fps;
+    }
+
+    public Color getColor() {
+        return color;
     }
 }
