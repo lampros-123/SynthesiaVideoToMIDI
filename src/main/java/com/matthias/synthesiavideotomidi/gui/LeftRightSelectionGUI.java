@@ -1,5 +1,6 @@
 package com.matthias.synthesiavideotomidi.gui;
 
+import com.matthias.synthesiavideotomidi.bl.Config;
 import com.matthias.synthesiavideotomidi.bl.Voice;
 import java.awt.Color;
 import java.awt.GridLayout;
@@ -17,14 +18,14 @@ import javax.swing.JPanel;
 public class LeftRightSelectionGUI extends javax.swing.JDialog {
     
     private List<Voice> voices = new ArrayList<>();
-    public int balance;
+    private Config config;
     
-    
-    public LeftRightSelectionGUI(java.awt.Frame parent, boolean modal, List<Voice> voices) {
+    public LeftRightSelectionGUI(java.awt.Frame parent, boolean modal, List<Voice> voices, Config config) {
         super(parent, modal);
         initComponents();
-        balance = sliderBalance.getValue();
         this.voices = voices;
+        this.config = config;
+        config.setLh_rh_balance(sliderBalance.getValue());
         updateVoices();
     }
     
@@ -65,7 +66,7 @@ public class LeftRightSelectionGUI extends javax.swing.JDialog {
             }
             p.add(numNotes);
             
-            if(voice.getAverageNote() < balance) {
+            if(voice.getAverageNote() < config.getLh_rh_balance()) {
                 pnLH.add(p);
             } else {
                 pnRH.add(p);
@@ -141,7 +142,7 @@ public class LeftRightSelectionGUI extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
 
     private void sliderBalanceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderBalanceStateChanged
-        balance = sliderBalance.getValue();
+        config.setLh_rh_balance(sliderBalance.getValue());
         updateVoices();
     }//GEN-LAST:event_sliderBalanceStateChanged
 

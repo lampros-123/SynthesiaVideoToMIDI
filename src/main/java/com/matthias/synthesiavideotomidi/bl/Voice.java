@@ -10,14 +10,14 @@ import java.util.ArrayList;
 public class Voice {
 
     // higher = fewer colors, lower = more differntiation between colors
-    private static int tolerance = 80;
-
     private ArrayList<Note> notes = new ArrayList<>();
     private Color color;
     private int lhRh = 0;
+    private Config config;
 
-    public Voice(Color color) {
+    public Voice(Color color, Config config) {
         this.color = color;
+        this.config = config;
     }
 
     public void merge(Voice other) {
@@ -28,10 +28,10 @@ public class Voice {
         notes.add(n);
     }
 
-    public static boolean isEqual(Color c1, Color c2) {
-        return Math.abs(c1.getRed() - c2.getRed()) < tolerance
-                && Math.abs(c1.getBlue() - c2.getBlue()) < tolerance
-                && Math.abs(c1.getGreen() - c2.getGreen()) < tolerance;
+    public static boolean isEqual(Color c1, Color c2, int colorTolerance) {
+        return Math.abs(c1.getRed() - c2.getRed()) < colorTolerance
+                && Math.abs(c1.getBlue() - c2.getBlue()) < colorTolerance
+                && Math.abs(c1.getGreen() - c2.getGreen()) < colorTolerance;
     }
 
     /**
@@ -41,7 +41,7 @@ public class Voice {
      * @return true if it belongs to this track, else false
      */
     public boolean isOfTrack(Color c) {
-        return isEqual(color, c);
+        return isEqual(color, c, config.getColorTolerance());
     }
 
     /**
@@ -98,9 +98,5 @@ public class Voice {
 
     public void setLhRh(int balance) {
         lhRh = getAverageNote() < balance ? 0 : 1;
-    }
-
-    public static void setTolerance(int tolerance) {
-        Voice.tolerance = tolerance;
     }
 }

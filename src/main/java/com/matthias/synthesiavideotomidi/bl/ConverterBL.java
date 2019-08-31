@@ -12,10 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -34,25 +31,33 @@ public class ConverterBL {
 
     public boolean paused;
 
-    private ArrayList<NoteListener> noteListeners = new ArrayList<>();
     private BufferedImage currentFrame;
     private int currentFrameNumber;
     private int state = WAITING_TO_START;
 
-    private ArrayList<Config> defaults = new ArrayList<>();
+    private static ArrayList<Config> defaults = new ArrayList<>();
     private Config config;
+    
+    private ArrayList<NoteListener> noteListeners = new ArrayList<>();
+
+    static {
+        loadDefaults();
+    }
 
     public ConverterBL() {
-        loadDefaults();
         config = loadOrCreateConfig(null);
     }
 
     public void setFile(File file) {
         config = loadOrCreateConfig(file);
+        try {
+            noteListeners = config.parseNoteListeners();
+        } catch (Exception ex) {
+        }
         updateCurrentFrame();
     }
 
-    private void updateCurrentFrame() {
+    public void updateCurrentFrame() {
         if (config.getVideo() == null) {
             return;
         }
@@ -64,46 +69,6 @@ public class ConverterBL {
             e.printStackTrace();
         }
         currentFrame = player.next();
-    }
-
-    private void calculateNoteListeners(int offsetNotesLeft, int offsetNotesRight) {
-        if (config.getC1x() < 0 || config.getC2x() < 0 || currentFrame == null) {
-            return;
-        }
-
-        double dist = (config.getC2x() - config.getC1x()) / (7.0 * (config.getC2Idx() - config.getC1Idx()));
-        if (dist <= 0) {
-            return;
-        }
-
-        double x = config.getC1x() - offsetNotesLeft * dist;
-        int[] offsetDictionary = {0, 1, 3, 5, 7, 8, 10, 12};
-        int noteNumber = config.getC1Idx() * 12 - offsetDictionary[offsetNotesLeft];
-
-        noteListeners = new ArrayList<>();
-        while (x <= config.getC2x() + offsetNotesRight * dist) {
-            // add white key
-            NoteListener nl = new NoteListener(noteNumber, (int) x, (int) config.getC12y(), currentFrame);
-            noteListeners.add(nl);
-            noteNumber++;
-            // if the key isn't e or h add a black key to the right of it
-            if (noteNumber % 12 != 5 && noteNumber % 12 != 0) {
-                double bx = x + dist / 2.0;
-                double by = config.getC12y() - config.getBlackWhiteVerticalSpacing();
-                nl = new NoteListener(noteNumber, (int) bx, (int) by, currentFrame);
-                noteListeners.add(nl);
-                noteNumber++;
-            }
-            x += dist;
-        }
-    }
-
-    public void NoteListenerYPositionUpdated() {
-        for (NoteListener noteListener : noteListeners) {
-            if (noteListener.getPosY() < (int) config.getC12y()) {
-                noteListener.setPosY((int) config.getC12y() - config.getBlackWhiteVerticalSpacing());
-            }
-        }
     }
 
     /**
@@ -121,7 +86,6 @@ public class ConverterBL {
         player.setStartFrame(config.getStartFrame());
 
         Note.setFps(player.getFps());
-        Voice.setTolerance(config.getColorTolerance());
         state = RUNNING;
         Thread t = new Thread(() -> {
             // go through all frames and save what notes are played
@@ -143,8 +107,6 @@ public class ConverterBL {
             state = WAITING_FOR_SETTINGS;
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
-                Voice.setTolerance(config.getColorTolerance());
-
                 // merge notes into voices based on the color tolerance
                 ArrayList<Note> allNotes = new ArrayList<>();
                 for (NoteListener noteListener : noteListeners) {
@@ -162,20 +124,19 @@ public class ConverterBL {
                                 break addToVoice;
                             }
                         }
-                        Voice v = new Voice(note.getColor());
+                        Voice v = new Voice(note.getColor(), config);
                         v.addNote(note);
                         voices.add(v);
                     }
                 }
 
-                LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, voices);
+                LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, voices, config);
                 gui.setVisible(true);
-                config.setLh_rh_balance(gui.balance);
 
                 saveDefaults();
                 // merge all lh voices and all rh voices
-                Voice lh = new Voice(Color.white);
-                Voice rh = new Voice(Color.black);
+                Voice lh = new Voice(Color.white, config);
+                Voice rh = new Voice(Color.black, config);
                 for (Voice voice : voices) {
                     if (voice.getAverageNote() > config.getLh_rh_balance()) {
                         rh.merge(voice);
@@ -226,7 +187,47 @@ public class ConverterBL {
             } catch (InterruptedException ex) {
             }
         }
+    }
 
+    private void calculateNoteListeners() {
+        System.out.println("calculatenotelisteners");
+        if (config.getC1x() < 0 || config.getC2x() < 0 || currentFrame == null) {
+            return;
+        }
+
+        double dist = (config.getC2x() - config.getC1x()) / (7.0 * (config.getC2Idx() - config.getC1Idx()));
+        if (dist <= 0) {
+            return;
+        }
+
+        double x = config.getC1x() - config.getOffLeft() * dist;
+        int[] offsetDictionary = {0, 1, 3, 5, 7, 8, 10, 12};
+        int noteNumber = config.getC1Idx() * 12 - offsetDictionary[config.getOffLeft()];
+
+        noteListeners = new ArrayList<>();
+        while (x <= config.getC2x() + config.getOffRight() * dist) {
+            // add white key
+            NoteListener nl = new NoteListener(noteNumber, (int) x, (int) config.getC12y(), currentFrame, true, config);
+            noteListeners.add(nl);
+            noteNumber++;
+            // if the key isn't e or h add a black key to the right of it
+            if (noteNumber % 12 != 5 && noteNumber % 12 != 0) {
+                double bx = x + dist / 2.0;
+                double by = config.getC12y() - config.getBlackWhiteVerticalSpacing();
+                nl = new NoteListener(noteNumber, (int) bx, (int) by, currentFrame, false, config);
+                noteListeners.add(nl);
+                noteNumber++;
+            }
+            x += dist;
+        }
+    }
+    
+    public void blackWhiteVerticalSpacingUpdated() {
+        for (NoteListener noteListener : noteListeners) {
+            if (!noteListener.isWhiteNote()) {
+                noteListener.setPosY((int) config.getC12y() - config.getBlackWhiteVerticalSpacing());
+            }
+        }
     }
 
     /**
@@ -297,7 +298,7 @@ public class ConverterBL {
         }
     }
 
-    private void loadDefaults() {
+    private static void loadDefaults() {
         try {
             defaults = new ArrayList<>();
             RFC4180Parser rfc4180Parser = new RFC4180ParserBuilder().build();
@@ -312,6 +313,10 @@ public class ConverterBL {
             }
         } catch (FileNotFoundException ex) {
         }
+    }
+    
+    public void saveDataToConfig() {
+        config.setNoteListeners(noteListeners);
     }
 
     public Config getConfig() {
@@ -348,27 +353,12 @@ public class ConverterBL {
         return noteListeners;
     }
 
-    public void setC1(double x, double y, int idx, int offLeft, int offRight) {
-        config.setC1x((int) x);
-        config.setC1Idx(idx);
-        config.setC12y((int) y);
-        config.setOffLeft(offLeft);
-        config.setOffRight(offRight);
-
-        if (config.getC2x() >= 0) {
-            calculateNoteListeners(offLeft, offRight);
-        }
-    }
-
-    public void setC2(double x, double y, int idx, int offLeft, int offRight) {
-        config.setC2x((int) x);
-        config.setC2Idx(idx);
-        config.setC12y((int) y);
-        config.setOffLeft(offLeft);
-        config.setOffRight(offRight);
-
-        if (config.getC1x() >= 0) {
-            calculateNoteListeners(offLeft, offRight);
+    /**
+     * calculate the notelisteners if all the necessary values have been set
+     */
+    public void calculateNoteListenersIfSet() {
+        if (config.getC1x() >= 0 && config.getC2x() >= 0) {
+            calculateNoteListeners();
         }
     }
 
@@ -382,11 +372,6 @@ public class ConverterBL {
 
     public BufferedImage getCurrentFrame() {
         return currentFrame;
-    }
-
-    public void setStartFrame(int startFrame) {
-        config.setStartFrame(startFrame);
-        updateCurrentFrame();
     }
 
     public int getCurrentFrameNumber() {

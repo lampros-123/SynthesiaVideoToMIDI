@@ -64,28 +64,12 @@ public class ConverterGUI extends javax.swing.JFrame {
         sliderScale.setValue((int) (config.getScale() * 100));
         sliderColorTolerance.setValue(config.getColorTolerance());
         sliderYDistance.setValue(config.getBlackWhiteVerticalSpacing());
-        Voice.setTolerance(sliderColorTolerance.getValue());
-        spC1.setValue(config.getC1x());
-        spC2.setValue(config.getC2x());
+        spC1.setValue(config.getC1Idx());
+        spC2.setValue(config.getC2Idx());
         spBPM.setValue(config.getBpm());
         spPPQ.setValue(config.getPpq());
         spStartFrame.setValue(config.getStartFrame());
         spFirstFrameOfSong.setValue(config.getFirstFrameOfSong());
-        
-        if(config.getC1Idx() >= 0 && config.getC2Idx() >= 0) {
-            bl.setC1(config.getC1x(), config.getC12y(), config.getC1Idx(), config.getOffLeft(), config.getOffRight());
-            bl.setC2(config.getC2x(), config.getC12y(), config.getC2Idx(), config.getOffLeft(), config.getOffRight());
-            spC1.setValue(config.getC1Idx());
-            spC2.setValue(config.getC2Idx());
-        }
-    }
-    
-    
-    private void parseConfigFromGUI(Config config) {
-        config.setBpm((int) spBPM.getValue());
-        config.setPpq((int) spPPQ.getValue());
-        config.setColorTolerance(sliderColorTolerance.getValue());
-        config.setFirstFrameOfSong((int) spFirstFrameOfSong.getValue());
     }
     
     /**
@@ -214,6 +198,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(jLabel1, gridBagConstraints);
 
         spBPM.setModel(new javax.swing.SpinnerNumberModel(150, 1, null, 1));
+        spBPM.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spBPMStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 15;
@@ -222,6 +211,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(spBPM, gridBagConstraints);
 
         spC1.setModel(new javax.swing.SpinnerNumberModel(2, 0, 8, 1));
+        spC1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spC1StateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
@@ -229,6 +223,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(spC1, gridBagConstraints);
 
         spC2.setModel(new javax.swing.SpinnerNumberModel(8, 0, 8, 1));
+        spC2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spC2StateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -292,6 +291,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(lbAction, gridBagConstraints);
 
         spOffC1.setModel(new javax.swing.SpinnerNumberModel(0, 0, 7, 1));
+        spOffC1.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spOffC1StateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -299,6 +303,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(spOffC1, gridBagConstraints);
 
         spOffC2.setModel(new javax.swing.SpinnerNumberModel(0, 0, 7, 1));
+        spOffC2.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spOffC2StateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
@@ -320,7 +329,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(sliderFPS, gridBagConstraints);
 
-        jLabel3.setText("FPS");
+        jLabel3.setText("playback FPS");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 11;
@@ -359,6 +368,11 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(jLabel5, gridBagConstraints);
 
         spPPQ.setModel(new javax.swing.SpinnerNumberModel(4, 1, 120, 1));
+        spPPQ.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                spPPQStateChanged(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 16;
@@ -530,13 +544,15 @@ public class ConverterGUI extends javax.swing.JFrame {
         double scaledX = evt.getX() / bl.getConfig().getScale();
         double scaledY = evt.getY() / bl.getConfig().getScale();
         if (waiting.equals("c1")) {
-            bl.setC1(scaledX, scaledY, (int) spC1.getValue(),
-                    (int) spOffC1.getValue(), (int) spOffC2.getValue());
+            bl.getConfig().setC1x((int) scaledX);
+            bl.getConfig().setC12y((int) scaledY);
+            bl.calculateNoteListenersIfSet();
             waiting = "c2";
             lbAction.setText("Action: set c" + (int) spC2.getValue());
         } else if (waiting.equals("c2")) {
-            bl.setC2(scaledX, scaledY, (int) spC2.getValue(),
-                    (int) spOffC1.getValue(), (int) spOffC2.getValue());
+            bl.getConfig().setC2x((int) scaledX);
+            bl.getConfig().setC12y((int) scaledY);
+            bl.calculateNoteListenersIfSet();
             waiting = "fix";
             lbAction.setText("Action: fix");
         } else if (waiting.equals("fix")) {
@@ -580,13 +596,13 @@ public class ConverterGUI extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "bpm or ppq invalid");
                 return;
             }
-            parseConfigFromGUI(bl.getConfig());
             bl.configCompleted();
         }
 
     }//GEN-LAST:event_btStartActionPerformed
 
     private void btChooseFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btChooseFileActionPerformed
+        bl.saveDataToConfig();
         fileChooser.setCurrentDirectory(new File("C:\\Users\\Matthias\\OneDrive - HTBLA Kaindorf\\Klavier"));
         int returnVal = fileChooser.showOpenDialog(this);
 
@@ -611,7 +627,8 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_pnCanvasMouseExited
 
     private void spStartFrameStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spStartFrameStateChanged
-        bl.setStartFrame((int) spStartFrame.getValue());
+        bl.getConfig().setStartFrame((int) spStartFrame.getValue());
+        bl.updateCurrentFrame();
         repaint();
     }//GEN-LAST:event_spStartFrameStateChanged
 
@@ -624,17 +641,17 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_sliderScaleStateChanged
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-        parseConfigFromGUI(bl.getConfig());
+        bl.saveDataToConfig();
         bl.saveDefaults();
     }//GEN-LAST:event_formWindowClosing
 
     private void sliderColorToleranceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderColorToleranceStateChanged
-        Voice.setTolerance(sliderColorTolerance.getValue());
+        bl.getConfig().setColorTolerance(sliderColorTolerance.getValue());
     }//GEN-LAST:event_sliderColorToleranceStateChanged
 
     private void sliderYDistanceStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_sliderYDistanceStateChanged
         bl.getConfig().setBlackWhiteVerticalSpacing(sliderYDistance.getValue());
-        bl.NoteListenerYPositionUpdated();
+        bl.blackWhiteVerticalSpacingUpdated();
         repaint();
     }//GEN-LAST:event_sliderYDistanceStateChanged
 
@@ -667,11 +684,36 @@ public class ConverterGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_miBarActionPerformed
 
     private void spFirstFrameOfSongStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spFirstFrameOfSongStateChanged
+        bl.getConfig().setFirstFrameOfSong((int) spFirstFrameOfSong.getValue());
     }//GEN-LAST:event_spFirstFrameOfSongStateChanged
 
     private void btSetAsFirstFrameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btSetAsFirstFrameActionPerformed
         spFirstFrameOfSong.setValue(spStartFrame.getValue());
     }//GEN-LAST:event_btSetAsFirstFrameActionPerformed
+
+    private void spC1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spC1StateChanged
+        bl.getConfig().setC1Idx((int) spC1.getValue());
+    }//GEN-LAST:event_spC1StateChanged
+
+    private void spOffC1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spOffC1StateChanged
+        bl.getConfig().setOffLeft((int) spOffC1.getValue());
+    }//GEN-LAST:event_spOffC1StateChanged
+
+    private void spC2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spC2StateChanged
+        bl.getConfig().setC2Idx((int) spC2.getValue());
+    }//GEN-LAST:event_spC2StateChanged
+
+    private void spOffC2StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spOffC2StateChanged
+        bl.getConfig().setOffRight((int) spOffC2.getValue());
+    }//GEN-LAST:event_spOffC2StateChanged
+
+    private void spBPMStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spBPMStateChanged
+        bl.getConfig().setBpm((int) spBPM.getValue());
+    }//GEN-LAST:event_spBPMStateChanged
+
+    private void spPPQStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_spPPQStateChanged
+        bl.getConfig().setPpq((int) spPPQ.getValue());
+    }//GEN-LAST:event_spPPQStateChanged
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */

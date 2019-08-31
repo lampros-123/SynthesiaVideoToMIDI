@@ -1,6 +1,7 @@
 package com.matthias.synthesiavideotomidi.bl;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,6 +27,7 @@ public class Config {
     private int colorTolerance = 80;
     private int blackWhiteVerticalSpacing = 40;
     private double c12y;
+    private String[] noteListenersCSV;
 
     public Config(String[] data) {
         try {
@@ -45,8 +47,24 @@ public class Config {
             colorTolerance = Integer.parseInt(data[13]);
             blackWhiteVerticalSpacing = Integer.parseInt(data[14]);
             c12y = Double.parseDouble(data[15]);
-        } catch (IndexOutOfBoundsException e) {
+            noteListenersCSV = data[16].split("_");
+        } catch (Exception e) {
             System.out.println("Parsing old savedata");
+        }
+    }
+    
+    public ArrayList<NoteListener> parseNoteListeners() throws Exception {
+        ArrayList<NoteListener> notelisteners = new ArrayList<>();
+        for (String listenerCSV : noteListenersCSV) {
+            notelisteners.add(NoteListener.fromCSV(listenerCSV, this));
+        }
+        return notelisteners;
+    }
+    
+    public void setNoteListeners(ArrayList<NoteListener> notelisteners) {
+        noteListenersCSV = new String[notelisteners.size()];
+        for (int i = 0; i < noteListenersCSV.length; i++) {
+            noteListenersCSV[i] = NoteListener.toCSV(notelisteners.get(i));
         }
     }
     
@@ -68,6 +86,7 @@ public class Config {
             colorTolerance+"",
             blackWhiteVerticalSpacing+"",
             c12y+"",
+            Stream.of(noteListenersCSV).collect(Collectors.joining("_"))
         };
         return Stream.of(data)
             .map(this::escapeSpecialCharacters)
@@ -88,7 +107,7 @@ public class Config {
     }
     public Config() {
     }
-
+    
     public File getVideo() {
         return video;
     }
