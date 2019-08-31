@@ -496,6 +496,7 @@ public class ConverterGUI extends javax.swing.JFrame {
 
         menuGoTo.setText("Go To");
 
+        miTime.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_T, java.awt.event.InputEvent.CTRL_MASK));
         miTime.setText("Time");
         miTime.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -504,6 +505,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         });
         menuGoTo.add(miTime);
 
+        miBar.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.CTRL_MASK));
         miBar.setText("Bar");
         miBar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

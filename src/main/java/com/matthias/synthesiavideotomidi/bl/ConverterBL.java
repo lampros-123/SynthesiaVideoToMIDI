@@ -1,16 +1,21 @@
 package com.matthias.synthesiavideotomidi.bl;
 
 import com.matthias.synthesiavideotomidi.gui.LeftRightSelectionGUI;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.RFC4180Parser;
+import com.opencsv.RFC4180ParserBuilder;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.EOFException;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InvalidClassException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -25,7 +30,7 @@ public class ConverterBL {
     public static int WAITING_FOR_SETTINGS = 2;
     public static int SAVING = 3;
     public static int DONE = 4;
-    public static final String defaultsFile = "defaults.ser";
+    public static final String defaultsFile = "defaults.csv";
 
     public boolean paused;
 
@@ -67,10 +72,10 @@ public class ConverterBL {
         }
 
         double dist = (config.getC2x() - config.getC1x()) / (7.0 * (config.getC2Idx() - config.getC1Idx()));
-        if(dist <= 0) {
+        if (dist <= 0) {
             return;
         }
-        
+
         double x = config.getC1x() - offsetNotesLeft * dist;
         int[] offsetDictionary = {0, 1, 3, 5, 7, 8, 10, 12};
         int noteNumber = config.getC1Idx() * 12 - offsetDictionary[offsetNotesLeft];
@@ -92,10 +97,10 @@ public class ConverterBL {
             x += dist;
         }
     }
-    
+
     public void NoteListenerYPositionUpdated() {
         for (NoteListener noteListener : noteListeners) {
-            if(noteListener.getPosY() < (int) config.getC12y()) {
+            if (noteListener.getPosY() < (int) config.getC12y()) {
                 noteListener.setPosY((int) config.getC12y() - config.getBlackWhiteVerticalSpacing());
             }
         }
@@ -139,7 +144,7 @@ public class ConverterBL {
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
                 Voice.setTolerance(config.getColorTolerance());
-                
+
                 // merge notes into voices based on the color tolerance
                 ArrayList<Note> allNotes = new ArrayList<>();
                 for (NoteListener noteListener : noteListeners) {
@@ -147,11 +152,12 @@ public class ConverterBL {
                 }
                 ArrayList<Voice> voices = new ArrayList<>();
                 for (Note note : allNotes) {
-                    addToVoice: {
+                    addToVoice:
+                    {
                         // check if the note fits into an already existing voice
                         for (Voice voice : voices) {
                             // if it does, add it to that voice
-                            if(voice.isOfTrack(note.getColor())){
+                            if (voice.isOfTrack(note.getColor())) {
                                 voice.addNote(note);
                                 break addToVoice;
                             }
@@ -161,7 +167,7 @@ public class ConverterBL {
                         voices.add(v);
                     }
                 }
-                
+
                 LeftRightSelectionGUI gui = new LeftRightSelectionGUI(null, true, voices);
                 gui.setVisible(true);
                 config.setLh_rh_balance(gui.balance);
@@ -206,9 +212,9 @@ public class ConverterBL {
         });
         t.start();
     }
-    
+
     public void configCompleted() {
-        if(state == WAITING_FOR_SETTINGS) {
+        if (state == WAITING_FOR_SETTINGS) {
             state = SAVING;
         }
     }
@@ -220,7 +226,7 @@ public class ConverterBL {
             } catch (InterruptedException ex) {
             }
         }
-        
+
     }
 
     /**
@@ -274,12 +280,13 @@ public class ConverterBL {
     }
 
     /**
-     * TODO: Fix (not working correctly)
-     * if a note ends shortly before another note (up to maxfillbeats) it is 
-     * lengthend to fill the gap between the two of them in order to fix staccato errors
+     * TODO: Fix (not working correctly) if a note ends shortly before another
+     * note (up to maxfillbeats) it is lengthend to fill the gap between the two
+     * of them in order to fix staccato errors
+     *
      * @param voice
      * @param maxfillbeats
-     * @return 
+     * @return
      */
     public void fillStaccato(Voice voice, double maxfillbeats) {
         for (Note note : voice.getNotes()) {
@@ -291,24 +298,26 @@ public class ConverterBL {
     }
 
     private void loadDefaults() {
-        defaults = new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(defaultsFile)))) {
-            Object o;
-            while ((o = ois.readObject()) != null) {
-                defaults.add((Config) o);
+        try {
+            defaults = new ArrayList<>();
+            RFC4180Parser rfc4180Parser = new RFC4180ParserBuilder().build();
+            CSVReaderBuilder csvReaderBuilder = new CSVReaderBuilder(new FileReader(defaultsFile))
+                    .withCSVParser(rfc4180Parser);
+            try (CSVReader csvReader = csvReaderBuilder.build()) {
+                String[] values = null;
+                while ((values = csvReader.readNext()) != null) {
+                    defaults.add(new Config(values));
+                }
+            } catch (IOException ex) {
             }
-        } catch (EOFException e) {
-        } catch (InvalidClassException e) {
-            System.err.println("Config Class has changed, all old configs have been lost");
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException ex) {
         }
     }
 
     public Config getConfig() {
         return config;
     }
-    
+
     private Config loadOrCreateConfig(File file) {
         if (file == null) {
             return new Config();
@@ -326,14 +335,13 @@ public class ConverterBL {
     }
 
     public void saveDefaults() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(new File(defaultsFile)))) {
-            for (Config defaultData : defaults) {
-                oos.writeObject(defaultData);
+        File csvOutputFile = new File(defaultsFile);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            for (Config def : defaults) {
+                String csv = def.toCSV();
+                pw.println(csv);
             }
-            oos.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (FileNotFoundException ex) {}
     }
 
     public ArrayList<NoteListener> getNoteListeners() {
@@ -386,6 +394,9 @@ public class ConverterBL {
     }
 
     public double getFPS() {
+        if (config.getVideo() == null) {
+            return 1;
+        }
         FramePlayer player = new FramePlayer(config.getVideo());
         return player.getFps();
     }

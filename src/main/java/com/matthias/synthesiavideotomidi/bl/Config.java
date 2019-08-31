@@ -1,22 +1,88 @@
 package com.matthias.synthesiavideotomidi.bl;
 
 import java.io.File;
-import java.io.Serializable;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
  * @author Matthias
  */
-public class Config implements Serializable {
+public class Config {
 
     private File video;
-    private int bpm = 0, startFrame = 100, firstFrameOfSong = 100, ppq = 4;
-    private int c1Idx = 2, c2Idx = 8, c1x = -1, c2x = -1, offLeft, offRight;
+    private int bpm = 0;
+    private int startFrame = 100;
+    private int firstFrameOfSong = 100;
+    private int ppq = 4;
+    private int c1Idx = 2;
+    private int c2Idx = 8;
+    private int c1x = -1;
+    private int c2x = -1;
+    private int offLeft;
+    private int offRight;
     private double scale = 1;
-    private int lh_rh_balance = 60, colorTolerance = 80;
+    private int lh_rh_balance = 60;
+    private int colorTolerance = 80;
     private int blackWhiteVerticalSpacing = 40;
     private double c12y;
 
+    public Config(String[] data) {
+        try {
+            video = new File(data[0]);
+            bpm = Integer.parseInt(data[1]);
+            startFrame = Integer.parseInt(data[2]);
+            firstFrameOfSong = Integer.parseInt(data[3]);
+            ppq = Integer.parseInt(data[4]);
+            c1Idx = Integer.parseInt(data[5]);
+            c2Idx = Integer.parseInt(data[6]);
+            c1x = Integer.parseInt(data[7]);
+            c2x = Integer.parseInt(data[8]);
+            offLeft = Integer.parseInt(data[9]);
+            offRight = Integer.parseInt(data[10]);
+            scale = Double.parseDouble(data[11]);
+            lh_rh_balance = Integer.parseInt(data[12]);
+            colorTolerance = Integer.parseInt(data[13]);
+            blackWhiteVerticalSpacing = Integer.parseInt(data[14]);
+            c12y = Double.parseDouble(data[15]);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Parsing old savedata");
+        }
+    }
+    
+    public String toCSV() {
+        String[] data = {
+            video == null ? "" : video.getAbsolutePath(),
+            bpm+"",
+            startFrame+"",
+            firstFrameOfSong+"",
+            ppq+"",
+            c1Idx+"",
+            c2Idx+"",
+            c1x+"",
+            c2x+"",
+            offLeft+"",
+            offRight+"",
+            scale+"",
+            lh_rh_balance+"",
+            colorTolerance+"",
+            blackWhiteVerticalSpacing+"",
+            c12y+"",
+        };
+        return Stream.of(data)
+            .map(this::escapeSpecialCharacters)
+            .collect(Collectors.joining(","));
+    }
+    
+    public String escapeSpecialCharacters(String data) {
+        String escapedData = data.replaceAll("\\R", " ");
+        if (data.contains(",") || data.contains("\"")) {
+            data = data.replace("\"", "\"\"");
+            escapedData = "\"" + data + "\"";
+        }
+        return escapedData;
+    }
+    
     public Config(File video) {
         this.video = video;
     }
