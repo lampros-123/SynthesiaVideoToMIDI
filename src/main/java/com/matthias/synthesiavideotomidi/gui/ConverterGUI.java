@@ -122,6 +122,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         spEndFrame = new javax.swing.JSpinner();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
         menuGoTo = new javax.swing.JMenu();
         miTime = new javax.swing.JMenuItem();
         miBar = new javax.swing.JMenuItem();
@@ -529,7 +530,16 @@ public class ConverterGUI extends javax.swing.JFrame {
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
-        jMenu1.setText("File");
+        jMenu1.setText("Calculate");
+
+        jMenuItem1.setText("BPM");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        jMenu1.add(jMenuItem1);
+
         jMenuBar1.add(jMenu1);
 
         menuGoTo.setText("Go To");
@@ -756,6 +766,19 @@ public class ConverterGUI extends javax.swing.JFrame {
         bl.getConfig().setEndFrame((int) spEndFrame.getValue());
     }//GEN-LAST:event_spEndFrameStateChanged
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        BeatInputDialog dlg = new BeatInputDialog(this, true);
+        dlg.setVisible(true);
+        if(dlg.wasSuccessful()) {
+            double beats = dlg.getBeat();
+            double durFrames = bl.getConfig().getStartFrame() - bl.getConfig().getFirstFrameOfSong();
+            double fps = bl.getFPS();
+            double bpm = beats / durFrames * fps * 60.0;
+            JOptionPane.showMessageDialog(this, String.format("Precise bpm: %.3f", bpm));
+            spBPM.setValue((int) Math.round(bpm));
+        }
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -809,6 +832,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel lbAction;
     private javax.swing.JMenu menuGoTo;
