@@ -17,8 +17,8 @@ public class MidiWriter {
 
     private static int VELOCITY = 120;
 
-    public static void write(Voice leftHand, Voice rightHand, String path, int ppq) throws Exception{
-        Sequence s = new Sequence(Sequence.PPQ, ppq);
+    public static void write(Voice leftHand, Voice rightHand, String path, Config config) throws Exception{
+        Sequence s = new Sequence(Sequence.PPQ, config.getPpq());
         
 
         List<Note> notes = null;
@@ -32,9 +32,9 @@ public class MidiWriter {
 
             for (Note note : notes) {
                 track.add(createNoteOnEvent(note.getNoteNumber(),
-                        note.getStartTick(ppq)));
+                        note.getStartTick(config)));
                 track.add(createNoteOffEvent(note.getNoteNumber(),
-                        note.getStartTick(ppq) + note.getDurationTicks(ppq)));
+                        note.getStartTick(config) + note.getDurationTicks(config)));
             }
         }
 

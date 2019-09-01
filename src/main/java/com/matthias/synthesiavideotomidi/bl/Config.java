@@ -12,7 +12,7 @@ import java.util.stream.Stream;
  */
 public class Config {
 
-    private File video;
+    private final File video;
     private int bpm = 0;
     private int startFrame = 100;
     private int firstFrameOfSong = 100;
@@ -30,10 +30,13 @@ public class Config {
     private double c12y;
     private String[] noteListenersCSV = {};
     private int endFrame = 0;
+    
+    // non csv values
+    private double fps = -1;
 
     public Config(String[] data) {
+        video = new File(data[0]);
         try {
-            video = new File(data[0]);
             bpm = Integer.parseInt(data[1]);
             startFrame = Integer.parseInt(data[2]);
             firstFrameOfSong = Integer.parseInt(data[3]);
@@ -110,6 +113,7 @@ public class Config {
         this.video = video;
     }
     public Config() {
+        this.video = null;
     }
     
     public File getVideo() {
@@ -242,5 +246,16 @@ public class Config {
 
     public int getEndFrame() {
         return endFrame;
+    }
+
+    public double getFPS() {
+        if (video == null) {
+            return 1;
+        }
+        if(fps < 0) {
+            FramePlayer player = new FramePlayer(video);
+            fps = player.getFps();
+        }
+        return fps;
     }
 }

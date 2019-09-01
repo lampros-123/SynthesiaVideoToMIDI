@@ -698,7 +698,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         TimeInputDialog dlg = new TimeInputDialog(this, true);
         dlg.setVisible(true);
         if(dlg.wasSuccessful()) {
-            int result = (int) (dlg.getSeconds() * bl.getFPS());
+            int result = (int) (dlg.getSeconds() * bl.getConfig().getFPS());
             String[] options = new String[] {"Start Frame", "End Frame"};
             int selected = JOptionPane.showOptionDialog(this, "Which value should be filled", "result frame: " + result, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
             if(selected == 0) {
@@ -716,7 +716,7 @@ public class ConverterGUI extends javax.swing.JFrame {
             double bpm = (int) spBPM.getValue();
             double desiredBeat = dlg.getBeat();
             double secondsTilBeat = desiredBeat / bpm * 60.0;
-            int framesTilBeat = (int) (secondsTilBeat * bl.getFPS());
+            int framesTilBeat = (int) (secondsTilBeat * bl.getConfig().getFPS());
             int baseFrame = (int) spFirstFrameOfSong.getValue();
             int result = baseFrame + framesTilBeat;
 
@@ -772,7 +772,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         if(dlg.wasSuccessful()) {
             double beats = dlg.getBeat();
             double durFrames = bl.getConfig().getStartFrame() - bl.getConfig().getFirstFrameOfSong();
-            double fps = bl.getFPS();
+            double fps = bl.getConfig().getFPS();
             double bpm = beats / durFrames * fps * 60.0;
             JOptionPane.showMessageDialog(this, String.format("Precise bpm: %.3f", bpm));
             spBPM.setValue((int) Math.round(bpm));

@@ -86,8 +86,6 @@ public class ConverterBL {
 
         FramePlayer player = new FramePlayer(config.getVideo());
         player.setStartFrame(config.getStartFrame());
-
-        Note.setFps(player.getFps());
         state = RUNNING;
         Thread t = new Thread(() -> {
             // go through all frames and save what notes are played
@@ -153,7 +151,6 @@ public class ConverterBL {
                         lh.merge(voice);
                     }
                 }
-                Note.setBpm(config.getBpm());
 
                 if (maxOneParallelVoice) {
                     lh = limitToOneVoice(lh);
@@ -170,7 +167,7 @@ public class ConverterBL {
                         if (!destination.endsWith(".midi")) {
                             destination += ".midi";
                         }
-                        MidiWriter.write(lh, rh, destination, config.getPpq());
+                        MidiWriter.write(lh, rh, destination, config);
                         JOptionPane.showMessageDialog(null, "saving done");
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -274,14 +271,14 @@ public class ConverterBL {
         List<Note> notes = voice.getNotes();
         for (int i = 0; i < voice.getNotes().size(); i++) {
             Note curNote = voice.getNotes().get(i);
-            List<Note> notesAtBeat = voice.getNotesAtBeat(curNote.getStartBeat());
+            List<Note> notesAtBeat = voice.getNotesAtBeat(curNote.getStartBeat(config));
             for (int j = 0; j < notesAtBeat.size(); j++) {
                 Note note = notesAtBeat.get(j);
-                if (note.getDuration() < curNote.getDuration() - .25) {
+                if (note.getDuration(config) < curNote.getDuration(config) - .25) {
                     Note newNote = new Note(curNote.getStartFrame() + note.getDurationFrames(),
                             curNote.getDurationFrames() - note.getDurationFrames(),
                             curNote.getNoteNumber(), curNote.getColor());
-                    curNote.setDuration(note.getDuration());
+                    curNote.setDuration(note.getDuration(config));
                     voice.addNote(newNote);
                 }
             }
@@ -301,9 +298,8 @@ public class ConverterBL {
     public void fillStaccato(Voice voice, double maxfillbeats) {
         for (Note note : voice.getNotes()) {
             Note next = voice.getNextNote(note);
-            System.out.println(note.getEndBeat() + " " + note.getStartBeat());
-            double padding = Math.min(next.getStartBeat() - note.getEndBeat(), maxfillbeats);
-            note.setDuration(note.getDuration() + Note.beatToFrames(padding));
+            double padding = Math.min(next.getStartBeat(config) - note.getEndBeat(config), maxfillbeats);
+            note.setDuration(note.getDuration(config) + Note.beatToFrames(padding, config));
         }
     }
 
@@ -389,14 +385,6 @@ public class ConverterBL {
 
     public int getCurrentFrameNumber() {
         return currentFrameNumber;
-    }
-
-    public double getFPS() {
-        if (config.getVideo() == null) {
-            return 1;
-        }
-        FramePlayer player = new FramePlayer(config.getVideo());
-        return player.getFps();
     }
 
     public static Config getFirstConfig() {

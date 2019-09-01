@@ -54,7 +54,7 @@ public class Voice {
     public List<Note> getNotesAtBeat(double beat) {
         List<Note> beatNotes = new ArrayList<>();
         for (Note note : notes) {
-            if (Math.abs(note.getStartBeat() - beat) < .25) {
+            if (Math.abs(note.getStartBeat(config) - beat) < .25) {
                 beatNotes.add(note);
             }
         }
