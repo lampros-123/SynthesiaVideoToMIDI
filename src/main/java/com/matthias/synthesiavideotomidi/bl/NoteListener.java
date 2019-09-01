@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,7 +13,7 @@ import java.util.stream.Stream;
  * @author Matthias
  */
 public class NoteListener implements Serializable{
-    private ArrayList<Note> notes = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
 
     private int posX = -1;
     private int posY = -1;
@@ -184,7 +185,7 @@ public class NoteListener implements Serializable{
         return prevCol;
     }
 
-    public ArrayList<Note> getNotes() {
+    public List<Note> getNotes() {
         return notes;
     }
 

@@ -5,16 +5,17 @@ import com.matthias.synthesiavideotomidi.bl.NoteListener;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JButton;
 
 public class ConfirmNotelistenerBaseColors extends javax.swing.JDialog {
 
-    private ArrayList<NoteListener> listeners;
-    private ArrayList<Color> colors;
+    private List<NoteListener> listeners;
+    private List<Color> colors;
     
     private int selected = -1;
     
-    public ConfirmNotelistenerBaseColors(java.awt.Frame parent, boolean modal, ArrayList<NoteListener> listeners) {
+    public ConfirmNotelistenerBaseColors(java.awt.Frame parent, boolean modal, List<NoteListener> listeners) {
         super(parent, modal);
         initComponents();
         setSize(500, 300);

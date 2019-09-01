@@ -31,6 +31,7 @@ public class ConverterGUI extends javax.swing.JFrame {
     
     public void reset() {
         bl = new ConverterBL();
+        bl.setFile(ConverterBL.getFirstConfig().getVideo());
         waiting="c1";
         lbAction.setText("Action: set c" + (int) spC1.getValue());
         setupDefaults(bl.getConfig());
@@ -62,8 +63,8 @@ public class ConverterGUI extends javax.swing.JFrame {
 
     private void setupDefaults(Config config) {
         sliderScale.setValue((int) (config.getScale() * 100));
-        sliderColorTolerance.setValue((int) config.getColorTolerance());
-        sliderYDistance.setValue((int) config.getBlackWhiteVerticalSpacing());
+        sliderColorTolerance.setValue(config.getColorTolerance());
+        sliderYDistance.setValue(config.getBlackWhiteVerticalSpacing());
         spC1.setValue(config.getC1Idx());
         spC2.setValue(config.getC2Idx());
         spBPM.setValue(config.getBpm());

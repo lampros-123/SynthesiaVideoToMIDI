@@ -2,6 +2,7 @@ package com.matthias.synthesiavideotomidi.bl;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 public class Voice {
 
     // higher = fewer colors, lower = more differntiation between colors
-    private ArrayList<Note> notes = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
     private Color color;
     private int lhRh = 0;
     private Config config;
@@ -50,8 +51,8 @@ public class Voice {
      * @param beat
      * @return
      */
-    public ArrayList<Note> getNotesAtBeat(double beat) {
-        ArrayList<Note> beatNotes = new ArrayList<>();
+    public List<Note> getNotesAtBeat(double beat) {
+        List<Note> beatNotes = new ArrayList<>();
         for (Note note : notes) {
             if (Math.abs(note.getStartBeat() - beat) < .25) {
                 beatNotes.add(note);
@@ -79,7 +80,7 @@ public class Voice {
         return next;
     }
 
-    public ArrayList<Note> getNotes() {
+    public List<Note> getNotes() {
         return notes;
     }
 

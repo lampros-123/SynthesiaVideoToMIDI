@@ -2,6 +2,7 @@ package com.matthias.synthesiavideotomidi.bl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,7 +28,7 @@ public class Config {
     private int colorTolerance = 80;
     private int blackWhiteVerticalSpacing = 40;
     private double c12y;
-    private String[] noteListenersCSV;
+    private String[] noteListenersCSV = {};
     private int endFrame = 0;
 
     public Config(String[] data) {
@@ -55,15 +56,15 @@ public class Config {
         }
     }
     
-    public ArrayList<NoteListener> parseNoteListeners() throws Exception {
-        ArrayList<NoteListener> notelisteners = new ArrayList<>();
+    public List<NoteListener> parseNoteListeners() throws Exception {
+        List<NoteListener> notelisteners = new ArrayList<>();
         for (String listenerCSV : noteListenersCSV) {
             notelisteners.add(NoteListener.fromCSV(listenerCSV, this));
         }
         return notelisteners;
     }
     
-    public void setNoteListeners(ArrayList<NoteListener> notelisteners) {
+    public void setNoteListeners(List<NoteListener> notelisteners) {
         noteListenersCSV = new String[notelisteners.size()];
         for (int i = 0; i < noteListenersCSV.length; i++) {
             noteListenersCSV[i] = NoteListener.toCSV(notelisteners.get(i));

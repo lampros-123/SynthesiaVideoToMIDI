@@ -1,7 +1,7 @@
 package com.matthias.synthesiavideotomidi.bl;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiSystem;
@@ -21,7 +21,7 @@ public class MidiWriter {
         Sequence s = new Sequence(Sequence.PPQ, ppq);
         
 
-        ArrayList<Note> notes = null;
+        List<Note> notes = null;
         for (int i = 0; i < 2; i++) {
             if(i == 0)
                 notes = rightHand.getNotes();

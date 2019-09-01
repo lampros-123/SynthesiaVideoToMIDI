@@ -13,6 +13,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -35,10 +37,10 @@ public class ConverterBL {
     private int currentFrameNumber;
     private int state = WAITING_TO_START;
 
-    private static ArrayList<Config> defaults = new ArrayList<>();
+    private static List<Config> defaults = new LinkedList<>();
     private Config config;
     
-    private ArrayList<NoteListener> noteListeners = new ArrayList<>();
+    private List<NoteListener> noteListeners = new ArrayList<>();
 
     static {
         loadDefaults();
@@ -115,11 +117,11 @@ public class ConverterBL {
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
                 // merge notes into voices based on the color tolerance
-                ArrayList<Note> allNotes = new ArrayList<>();
+                List<Note> allNotes = new ArrayList<>();
                 for (NoteListener noteListener : noteListeners) {
                     allNotes.addAll(noteListener.getNotes());
                 }
-                ArrayList<Voice> voices = new ArrayList<>();
+                List<Voice> voices = new ArrayList<>();
                 for (Note note : allNotes) {
                     addToVoice:
                     {
@@ -269,10 +271,10 @@ public class ConverterBL {
      * @return
      */
     public Voice limitToOneVoice(Voice voice) {
-        ArrayList<Note> notes = voice.getNotes();
+        List<Note> notes = voice.getNotes();
         for (int i = 0; i < voice.getNotes().size(); i++) {
             Note curNote = voice.getNotes().get(i);
-            ArrayList<Note> notesAtBeat = voice.getNotesAtBeat(curNote.getStartBeat());
+            List<Note> notesAtBeat = voice.getNotesAtBeat(curNote.getStartBeat());
             for (int j = 0; j < notesAtBeat.size(); j++) {
                 Note note = notesAtBeat.get(j);
                 if (note.getDuration() < curNote.getDuration() - .25) {
@@ -335,18 +337,22 @@ public class ConverterBL {
             return new Config();
         }
 
-        for (Config config : defaults) {
-            if (config.getVideo().getName().equals(file.getName())) {
-                return config;
+        for (int i = 0; i < defaults.size(); i++) {
+            Config c = defaults.get(i);
+            if (c.getVideo().getName().equals(file.getName())) {
+                defaults.remove(c);
+                defaults.add(0, c);
+                return c;
             }
         }
 
         Config d = new Config(file);
-        defaults.add(d);
+        defaults.add(0, d); // first default is opened on startup
         return d;
     }
 
     public void saveDefaults() {
+        // save as csv
         File csvOutputFile = new File(defaultsFile);
         try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
             for (Config def : defaults) {
@@ -356,7 +362,7 @@ public class ConverterBL {
         } catch (FileNotFoundException ex) {}
     }
 
-    public ArrayList<NoteListener> getNoteListeners() {
+    public List<NoteListener> getNoteListeners() {
         return noteListeners;
     }
 
@@ -391,5 +397,10 @@ public class ConverterBL {
         }
         FramePlayer player = new FramePlayer(config.getVideo());
         return player.getFps();
+    }
+
+    public static Config getFirstConfig() {
+        if(defaults.isEmpty()) return null;
+        return defaults.get(0);
     }
 }
