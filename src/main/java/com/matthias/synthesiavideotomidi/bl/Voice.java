@@ -28,7 +28,7 @@ public class Voice {
         notes.add(n);
     }
 
-    public static boolean isEqual(Color c1, Color c2, int colorTolerance) {
+    public static boolean isEqual(Color c1, Color c2, double colorTolerance) {
         return Math.abs(c1.getRed() - c2.getRed()) < colorTolerance
                 && Math.abs(c1.getBlue() - c2.getBlue()) < colorTolerance
                 && Math.abs(c1.getGreen() - c2.getGreen()) < colorTolerance;

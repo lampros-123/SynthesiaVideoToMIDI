@@ -22,7 +22,6 @@ public class NoteListener implements Serializable{
     private Color prevCol = null;
 
     private int noteStartFrame = -1;
-    private static int firstNoteFrame = -1;
     
     private boolean isWhiteNote;
     
@@ -41,27 +40,29 @@ public class NoteListener implements Serializable{
         this.idx = idx;
         posX = x;
         posY = y;
-        center(img);
         Color color =  new Color(img.getRGB((int) posX, (int) posY));
         defCol = color;
         prevCol = color;
         this.isWhiteNote = isWhiteNote;
         this.config = config;
+        center(img);
     }
     
     /**
-     * create notelistener based on known data (e.g. csv file)
+     * create notelistener based on known data (e.g.csv file)
      * @param idx note index
      * @param x position
      * @param y position
      * @param defCol base color of the notelistner when no note is being played
      * @param isWhiteNote determines if this note is a black or a white note
+     * @param config
      */
     public NoteListener(int idx, int x,  int y, Color defCol, boolean isWhiteNote, Config config) {
         this.idx = idx;
         this.posX = x;
         this.posY = y;
         this.defCol = defCol;
+        this.prevCol = defCol;
         this.isWhiteNote = isWhiteNote;
         this.config = config;
     }
@@ -136,7 +137,6 @@ public class NoteListener implements Serializable{
 
         // unless the previous color was the default color, a note must have ended
         if (!Voice.isEqual(prevCol, defCol, config.getColorTolerance())) {
-            if(firstNoteFrame < 0) firstNoteFrame = frameCount;
             Note note = new Note(noteStartFrame, frameCount - noteStartFrame, idx, prevCol);
             notes.add(note);
         }
@@ -148,6 +148,17 @@ public class NoteListener implements Serializable{
         }
 
         prevCol = curCol;
+    }
+   
+    /**
+     * upon end, any ongoing notes will be set to end
+     * @param frameCount the current frame when finishing
+     */
+    public void finish(int frameCount) {
+        if(!Voice.isEqual(prevCol, defCol, config.getColorTolerance())) {
+            Note note = new Note(noteStartFrame, frameCount - noteStartFrame, idx, prevCol);
+            notes.add(note);
+        }
     }
 
     public int getPosX() {

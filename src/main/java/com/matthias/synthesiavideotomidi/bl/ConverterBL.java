@@ -90,13 +90,20 @@ public class ConverterBL {
         Thread t = new Thread(() -> {
             // go through all frames and save what notes are played
             try {
-                currentFrameNumber = 0;
-                while (player.hasNext() && state == RUNNING && (currentFrame = player.next()) != null) {
+                currentFrameNumber = config.getStartFrame();
+                while (player.hasNext() && state == RUNNING) {
 //                    if(paused) continue;
+                    currentFrame = player.next();
+                    currentFrameNumber++;
                     for (NoteListener noteListener : noteListeners) {
                         noteListener.listen(currentFrame, currentFrameNumber);
                     }
-                    currentFrameNumber++;
+                    if(config.getEndFrame() > 0 && currentFrameNumber > config.getEndFrame()) {
+                        state = WAITING_FOR_SETTINGS;
+                    }
+                }
+                for (NoteListener noteListener : noteListeners) {
+                    noteListener.finish(currentFrameNumber);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

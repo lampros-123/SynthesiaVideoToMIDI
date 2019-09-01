@@ -3,8 +3,8 @@ package com.matthias.synthesiavideotomidi.bl;
 import java.awt.Color;
 
 public class Note {
-    private static double fps = 24;
-    private static double bpm = 120;
+    private static double fps = 24.0;
+    private static double bpm = 120.0;
 
     private static double firstNoteFrame = -1;
     

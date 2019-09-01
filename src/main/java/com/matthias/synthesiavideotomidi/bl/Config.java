@@ -28,6 +28,7 @@ public class Config {
     private int blackWhiteVerticalSpacing = 40;
     private double c12y;
     private String[] noteListenersCSV;
+    private int endFrame = 0;
 
     public Config(String[] data) {
         try {
@@ -48,6 +49,7 @@ public class Config {
             blackWhiteVerticalSpacing = Integer.parseInt(data[14]);
             c12y = Double.parseDouble(data[15]);
             noteListenersCSV = data[16].split("_");
+            endFrame = Integer.parseInt(data[17]);
         } catch (Exception e) {
             System.out.println("Parsing old savedata");
         }
@@ -86,7 +88,8 @@ public class Config {
             colorTolerance+"",
             blackWhiteVerticalSpacing+"",
             c12y+"",
-            Stream.of(noteListenersCSV).collect(Collectors.joining("_"))
+            Stream.of(noteListenersCSV).collect(Collectors.joining("_")),
+            endFrame+""
         };
         return Stream.of(data)
             .map(this::escapeSpecialCharacters)
@@ -230,5 +233,13 @@ public class Config {
 
     public int getFirstFrameOfSong() {
         return firstFrameOfSong;
+    }
+
+    public void setEndFrame(int endFrame) {
+        this.endFrame = endFrame;
+    }
+
+    public int getEndFrame() {
+        return endFrame;
     }
 }
