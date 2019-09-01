@@ -3,7 +3,6 @@ package com.matthias.synthesiavideotomidi.gui;
 import com.matthias.synthesiavideotomidi.bl.ConverterBL;
 import com.matthias.synthesiavideotomidi.bl.Config;
 import com.matthias.synthesiavideotomidi.bl.NoteListener;
-import com.matthias.synthesiavideotomidi.bl.Voice;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -120,6 +119,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         btSetAsFirstFrame = new javax.swing.JButton();
         jLabel11 = new javax.swing.JLabel();
         spEndFrame = new javax.swing.JSpinner();
+        tfAutoAdjustBeat = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -290,7 +290,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         lbAction.setText("Action: nothing");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 20;
+        gridBagConstraints.gridy = 21;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(lbAction, gridBagConstraints);
@@ -386,17 +386,17 @@ public class ConverterGUI extends javax.swing.JFrame {
         jPanel1.add(spPPQ, gridBagConstraints);
 
         jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.TRAILING);
+        jLabel6.setText("auto adjust beat limit");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 17;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridy = 18;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(jLabel6, gridBagConstraints);
 
         cbSingleVoice.setText("Single Voice");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 18;
+        gridBagConstraints.gridy = 19;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         jPanel1.add(cbSingleVoice, gridBagConstraints);
 
@@ -425,16 +425,15 @@ public class ConverterGUI extends javax.swing.JFrame {
         jLabel8.setText("staccato padding");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 20;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(jLabel8, gridBagConstraints);
 
-        cbStaccatoPadding.setEditable(true);
         cbStaccatoPadding.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "0", "0.25", "0.5", "1", "2", "4" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 19;
+        gridBagConstraints.gridy = 20;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(cbStaccatoPadding, gridBagConstraints);
@@ -528,6 +527,13 @@ public class ConverterGUI extends javax.swing.JFrame {
         gridBagConstraints.weightx = 1.0;
         jPanel1.add(spEndFrame, gridBagConstraints);
 
+        tfAutoAdjustBeat.setText("0.2");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 18;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        jPanel1.add(tfAutoAdjustBeat, gridBagConstraints);
+
         getContentPane().add(jPanel1, java.awt.BorderLayout.EAST);
 
         jMenu1.setText("Calculate");
@@ -604,7 +610,7 @@ public class ConverterGUI extends javax.swing.JFrame {
         if (bl.getState() == ConverterBL.WAITING_TO_START) {
             try {
                 double staccatopadding = Double.parseDouble(cbStaccatoPadding.getSelectedItem().toString());
-                bl.convert(cbSingleVoice.isSelected(), staccatopadding);
+                bl.convert(cbSingleVoice.isSelected(), staccatopadding, Double.parseDouble(tfAutoAdjustBeat.getText()));
                 btStart.setText("Stop");
                 Thread t = new Thread(() -> {
                     while (bl.getState() == ConverterBL.RUNNING) {
@@ -852,5 +858,6 @@ public class ConverterGUI extends javax.swing.JFrame {
     private javax.swing.JSpinner spOffC2;
     private javax.swing.JSpinner spPPQ;
     private javax.swing.JSpinner spStartFrame;
+    private javax.swing.JTextField tfAutoAdjustBeat;
     // End of variables declaration//GEN-END:variables
 }

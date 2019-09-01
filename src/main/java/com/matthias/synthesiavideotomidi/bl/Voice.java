@@ -2,6 +2,7 @@ package com.matthias.synthesiavideotomidi.bl;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -81,6 +82,15 @@ public class Voice {
     }
 
     public List<Note> getNotes() {
+        return notes;
+    }
+    
+    public List<Note> getNotesSorted() {
+        notes.sort((Note n1, Note n2) -> {
+            if(n1.getStartFrame() < n2.getStartFrame()) return -1;
+            if(n1.getStartFrame() > n2.getStartFrame()) return 1;
+            return 0;
+        });
         return notes;
     }
 

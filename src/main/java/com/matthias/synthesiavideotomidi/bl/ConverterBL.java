@@ -79,7 +79,7 @@ public class ConverterBL {
      * @param bpm how fast the video is
      * @throws Exception if the file is null or there aren't any noteListeners
      */
-    public void convert(boolean maxOneParallelVoice, double staccatopadding) throws Exception {
+    public void convert(boolean maxOneParallelVoice, double staccatopadding, double autoadjustBeat) throws Exception {
         if (config.getVideo() == null || noteListeners.size() < 1) {
             throw new Exception("Not Initialised");
         }
@@ -114,11 +114,23 @@ public class ConverterBL {
             state = WAITING_FOR_SETTINGS;
             while (state == WAITING_FOR_SETTINGS) {
                 waitForSettings();
-                // merge notes into voices based on the color tolerance
                 List<Note> allNotes = new ArrayList<>();
                 for (NoteListener noteListener : noteListeners) {
                     allNotes.addAll(noteListener.getNotes());
                 }
+                double firstNoteFrame = Integer.MAX_VALUE;
+                for (Note note : allNotes) {
+                    note.setFrameCorrection(0);
+                }
+                for (Note note : allNotes) {
+                    if(note.getStartFrame() < firstNoteFrame) {
+                        firstNoteFrame = note.getStartFrame();
+                    }
+                }
+                for (Note note : allNotes) {
+                    note.setFrameCorrection(firstNoteFrame);
+                }
+                // merge notes into voices based on the color tolerance
                 List<Voice> voices = new ArrayList<>();
                 for (Note note : allNotes) {
                     addToVoice:
@@ -152,9 +164,20 @@ public class ConverterBL {
                     }
                 }
 
+                // post edit
                 if (maxOneParallelVoice) {
                     lh = limitToOneVoice(lh);
                     rh = limitToOneVoice(rh);
+                }
+                if(staccatopadding > 0.01) {
+                    fillStaccato(lh, staccatopadding);
+                    fillStaccato(rh, staccatopadding);
+                }
+                if (autoadjustBeat > 0) {
+                    List<Note> notes = new ArrayList<Note>();
+                    notes.addAll(lh.getNotes());
+                    notes.addAll(rh.getNotes());
+                    autoadjustBeat(notes, autoadjustBeat);
                 }
 
                 JFileChooser chooser = new JFileChooser();
@@ -166,6 +189,12 @@ public class ConverterBL {
                         String destination = chooser.getSelectedFile().toString();
                         if (!destination.endsWith(".midi")) {
                             destination += ".midi";
+                        }
+                        for (Note note : lh.getNotesSorted()) {
+                            System.out.println(note.getFrameCorrection());
+                        }
+                        for (Note note : rh.getNotesSorted()) {
+                            System.out.println(note.getFrameCorrection());
                         }
                         MidiWriter.write(lh, rh, destination, config);
                         JOptionPane.showMessageDialog(null, "saving done");
@@ -293,13 +322,38 @@ public class ConverterBL {
      *
      * @param voice
      * @param maxfillbeats
-     * @return
      */
     public void fillStaccato(Voice voice, double maxfillbeats) {
         for (Note note : voice.getNotes()) {
             Note next = voice.getNextNote(note);
             double padding = Math.min(next.getStartBeat(config) - note.getEndBeat(config), maxfillbeats);
             note.setDuration(note.getDuration(config) + Note.beatToFrames(padding, config));
+        }
+    }
+
+    /**
+     * to avoid the music slowly drifting off beat, reset the beat every note
+     * so that before it can drift away it gets set back on track
+     * @param notes
+     * @param maxOffTick How many ticks the note can be off the actual tick in 
+     * order to still be regarded as perfectly on time and taken as a 
+     * new reference point for future notes
+     */
+    public void autoadjustBeat(List<Note> notes, double maxOffTick) {
+        if(notes.isEmpty()) return;
+        notes.sort((Note n1, Note n2) -> {
+            if(n1.getStartFrame() < n2.getStartFrame()) return -1;
+            if(n1.getStartFrame() > n2.getStartFrame()) return 1;
+            return 0;
+        });
+        Note exactNote = notes.get(0);
+        for (Note note : notes) {
+            note.setFrameCorrection(exactNote.getFrameCorrection());
+            double tick = note.getStartTickExact(config);
+            if(Math.abs(tick - Math.round(tick)) <= maxOffTick) {
+                note.setFrameCorrectionFromTicks(Math.round(tick), config);
+                exactNote = note;
+            }
         }
     }
 
